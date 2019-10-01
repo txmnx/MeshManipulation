@@ -5,6 +5,7 @@ using UnityEngine;
 public class MeshStudyEditor : Editor
 {
     MeshStudy mesh;
+    int numberOfRandomPoints = 1;
 
     void OnSceneGUI()
     {
@@ -26,9 +27,23 @@ public class MeshStudyEditor : Editor
             if (GUILayout.Button("Sample edit")) {
                 mesh.SampleEdit();
             }
+
             if (GUILayout.Button("Subdivise mesh")) {
                 mesh.SubdiviseMesh();
             }
+
+            GUILayout.Label("Random points");
+            numberOfRandomPoints = EditorGUILayout.IntSlider(numberOfRandomPoints, 1, 10);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Generate")) {
+                mesh.GenerateRandomPoints(numberOfRandomPoints);
+            }
+            if (GUILayout.Button("Clear")) {
+                mesh.RemoveRandomPoints();
+            }
+            GUILayout.EndHorizontal();
+
+            
         }
     }
 }

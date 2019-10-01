@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -13,6 +14,8 @@ public class MeshStudy : MonoBehaviour
     Vector3[] vertices;
     int[] triangles;
 
+    List<Vector3> randomPoints;
+
     [HideInInspector]
     public bool drawVertices = false;
     [HideInInspector]
@@ -25,6 +28,7 @@ public class MeshStudy : MonoBehaviour
     void Start()
     {
         InitMesh();
+        randomPoints = new List<Vector3>();
     }
 
     void InitMesh()
@@ -51,8 +55,8 @@ public class MeshStudy : MonoBehaviour
     {
         if (currentMesh != null && defaultMesh != null) {
             currentMesh.Clear();
+
             currentMesh.vertices = defaultMesh.vertices;
-            Debug.Log(defaultMesh.vertices.Length);
             currentMesh.triangles = defaultMesh.triangles;
             currentMesh.uv = defaultMesh.uv;
             currentMesh.normals = defaultMesh.normals;
@@ -113,6 +117,40 @@ public class MeshStudy : MonoBehaviour
         currentMesh.RecalculateNormals();
     }
 
+    public void GenerateRandomPoints(int numberOfPointsPerTriangle)
+    {
+        RemoveRandomPoints();
+
+        System.Random random = new System.Random();
+
+        Vector3 p1, p2, p3;
+        double randX, randY;
+
+        for (int t = 0; t < triangles.Length; t += 3) {
+            p1 = vertices[triangles[t]];
+            p2 = vertices[triangles[t + 1]];
+            p3 = vertices[triangles[t + 2]];
+
+            for (int i = 0; i < numberOfPointsPerTriangle; i++) {
+                randX = random.NextDouble();
+                randY = random.NextDouble();
+
+                if (randX + randY >= 1) {
+                    randX = 1 - randX;
+                    randY = 1 - randY;
+                }
+
+                Vector3 point = p1 + (p2 - p1) * (float)randX + (p3 - p1) * (float)randY;
+                randomPoints.Add(point);
+            }
+        }
+    }
+
+    public void RemoveRandomPoints()
+    {
+        randomPoints.Clear();
+    }
+
     Vector3 GetCentroid(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         return new Vector3(
@@ -126,7 +164,7 @@ public class MeshStudy : MonoBehaviour
     {
         if (drawVertices) {
             Gizmos.color = Color.blue;
-            foreach (var vert in vertices) {
+            foreach (Vector3 vert in vertices) {
                 Gizmos.DrawSphere(transform.TransformPoint(vert), 0.05f);
             }
         }
@@ -148,6 +186,11 @@ public class MeshStudy : MonoBehaviour
                     transform.TransformPoint(vertices[triangles[t + 2]])
                 );
             }
+        }
+
+        Gizmos.color = Color.green;
+        foreach (Vector3 point in randomPoints) {
+            Gizmos.DrawSphere(transform.TransformPoint(point), 0.03f);
         }
     }
 }
