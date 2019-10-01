@@ -50,7 +50,9 @@ public class MeshStudy : MonoBehaviour
     public void ResetMesh()
     {
         if (currentMesh != null && defaultMesh != null) {
+            currentMesh.Clear();
             currentMesh.vertices = defaultMesh.vertices;
+            Debug.Log(defaultMesh.vertices.Length);
             currentMesh.triangles = defaultMesh.triangles;
             currentMesh.uv = defaultMesh.uv;
             currentMesh.normals = defaultMesh.normals;
@@ -62,6 +64,47 @@ public class MeshStudy : MonoBehaviour
         }
     }
 
+    void AddTriangle(Vector3 p1, Vector3 p2, Vector3 p3, List<Vector3> verticesList, List<int> trianglesList)
+    {
+        int count = verticesList.Count;
+
+        verticesList.Add(p1);
+        verticesList.Add(p2);
+        verticesList.Add(p3);
+
+        trianglesList.Add(count);
+        trianglesList.Add(count + 1);
+        trianglesList.Add(count + 2);
+    }
+
+    public void SubdiviseMesh()
+    {
+        List<Vector3> newVertices = new List<Vector3>();
+        List<int> newTriangles = new List<int>();
+
+        for (int t = 0; t < triangles.Length; t += 3) {
+            Vector3 p1 = vertices[triangles[t]];
+            Vector3 p2 = vertices[triangles[t + 1]];
+            Vector3 p3 = vertices[triangles[t + 2]];
+
+            Vector3 centroid = GetCentroid(p1, p2, p3);
+
+            AddTriangle(p1, p2, centroid, newVertices, newTriangles);
+            AddTriangle(p2, p3, centroid, newVertices, newTriangles);
+            AddTriangle(p3, p1, centroid, newVertices, newTriangles);
+        }
+
+        currentMesh.Clear();
+
+        vertices = newVertices.ToArray();
+        triangles = newTriangles.ToArray();
+        currentMesh.vertices = vertices;
+        currentMesh.triangles = triangles;
+
+        currentMesh.RecalculateNormals();
+        currentMesh.RecalculateBounds();
+    }
+
     public void SampleEdit()
     {
         vertices[1] = new Vector3(1, 3, 2);
@@ -70,12 +113,21 @@ public class MeshStudy : MonoBehaviour
         currentMesh.RecalculateNormals();
     }
 
+    Vector3 GetCentroid(Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        return new Vector3(
+            (p1.x + p2.x + p3.x) / 3,
+            (p1.y + p2.y + p3.y) / 3,
+            (p1.z + p2.z + p3.z) / 3
+        );
+    }
+
     void OnDrawGizmos()
     {
         if (drawVertices) {
             Gizmos.color = Color.blue;
             foreach (var vert in vertices) {
-                Gizmos.DrawSphere(transform.TransformPoint(vert), 0.01f);
+                Gizmos.DrawSphere(transform.TransformPoint(vert), 0.05f);
             }
         }
 

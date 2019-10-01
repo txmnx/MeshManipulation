@@ -26,6 +26,9 @@ public class MeshStudyEditor : Editor
             if (GUILayout.Button("Sample edit")) {
                 mesh.SampleEdit();
             }
+            if (GUILayout.Button("Subdivise mesh")) {
+                mesh.SubdiviseMesh();
+            }
         }
     }
 }
