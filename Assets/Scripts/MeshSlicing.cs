@@ -78,6 +78,34 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
+    void AddTrianglesWithCutingLine(List<Vector3> vertices, List<int> triangles, Vector3 pA, Vector3 pB, Vector3 pC, Vector3 interAB, Vector3 interAC)
+    {
+        //Triangle A interAB interAC
+        AddTriangle(
+            vertices,
+            triangles,
+            pA,
+            interAB,
+            interAC
+        );
+        //Triangle interAB B interAC
+        AddTriangle(
+            vertices,
+            triangles,
+            interAB,
+            pB,
+            interAC
+        );
+        //Triangle interAC B C
+        AddTriangle(
+            vertices,
+            triangles,
+            interAC,
+            pB,
+            pC
+        );
+    }
+
     public PartMesh GeneratePartMesh(Plane plane)
     {
         List<Vector3> _vertices = new List<Vector3>();
