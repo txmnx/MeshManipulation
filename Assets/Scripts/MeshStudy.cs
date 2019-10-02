@@ -116,6 +116,13 @@ public class MeshStudy : MonoBehaviour
         currentMesh.vertices = vertices;
         currentMesh.RecalculateNormals();
     }
+   
+
+    public void GenerateRandomPointsEven()
+    {
+
+    }
+
 
     public void GenerateRandomPoints(int numberOfPointsPerTriangle)
     {
