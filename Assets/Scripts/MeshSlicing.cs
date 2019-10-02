@@ -68,26 +68,104 @@ public class MeshSlicing : MonoBehaviour
         }
     }
 
+    void AddTriangle(List<Vector3> vertices, List<int> triangles, Vector3 p1, Vector3 p2, Vector3 p3)
+    {
+        vertices.Add(p1);
+        vertices.Add(p2);
+        vertices.Add(p3);
+        triangles.Add(vertices.Count - 3);
+        triangles.Add(vertices.Count - 2);
+        triangles.Add(vertices.Count - 1);
+    }
+
     public PartMesh GeneratePartMesh(Plane plane)
     {
         List<Vector3> _vertices = new List<Vector3>();
         List<int> _triangles = new List<int>();
 
-        Vector3 vertex = Vector3.zero;
+
+        Vector3 pA;
+        Vector3 pB;
+        Vector3 pC;
+
+        Vector3 interAB;
+        Vector3 interAC;
+        Vector3 interBC;
+
+        bool isEdgeABIntersected;
+        bool isEdgeACIntersected;
+        bool isEdgeBCIntersected;
 
         for (int t = 0; t < currentMesh.triangles.Length - 3; t += 3) {
-
-            if (GetIntersectionVertex(plane, currentMesh.vertices[currentMesh.triangles[t]], currentMesh.vertices[currentMesh.triangles[t + 1]], out vertex)) {
-                intersectionVertices.Add(vertex);
-            }
-            if (GetIntersectionVertex(plane, currentMesh.vertices[currentMesh.triangles[t]], currentMesh.vertices[currentMesh.triangles[t + 2]], out vertex)) {
-                intersectionVertices.Add(vertex);
-            }
-            if (GetIntersectionVertex(plane, currentMesh.vertices[currentMesh.triangles[t + 1]], currentMesh.vertices[currentMesh.triangles[t + 2]], out vertex)) {
-                intersectionVertices.Add(vertex);
-            }
+            pA = currentMesh.vertices[currentMesh.triangles[t]];
+            pB = currentMesh.vertices[currentMesh.triangles[t + 1]];
+            pC = currentMesh.vertices[currentMesh.triangles[t + 2]];
 
 
+            isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
+            //if (isEdgeABIntersected) intersectionVertices.Add(vertex);
+
+            isEdgeACIntersected = GetIntersectionVertex(plane, pA, pC, out interAC);
+            //if (isEdgeACIntersected) intersectionVertices.Add(vertex);
+
+            isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
+            //if (isEdgeBCIntersected) intersectionVertices.Add(vertex);
+
+
+            //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
+            if (isEdgeABIntersected && isEdgeACIntersected) {
+                //Triangle A interAB interAC
+                AddTriangle(
+                    _vertices,
+                    _triangles,
+                    pA,
+                    interAB,
+                    interAC
+                );
+                //Triangle interAB B interAC
+                AddTriangle(
+                    _vertices,
+                    _triangles,
+                    interAB,
+                    pB,
+                    interAC
+                );
+                //Triangle interAC B C
+                AddTriangle(
+                    _vertices,
+                    _triangles,
+                    interAC,
+                    pB,
+                    pC
+                );
+            }
+            else if (isEdgeABIntersected && isEdgeBCIntersected) {
+                //Triangle B interBC interAB
+                AddTriangle(
+                    _vertices,
+                    _triangles,
+                    pB,
+                    interBC,
+                    interAB
+                );
+                //Triangle A C interAB
+                //Triangle interBC C interAB
+
+            }
+            else if (isEdgeACIntersected && isEdgeBCIntersected) {
+                //Triangle C interAC interBC
+                AddTriangle(
+                    _vertices,
+                    _triangles,
+                    pC,
+                    interAC,
+                    interBC
+                );
+                //Triangle interAC A B
+                //Triangle B interBC interAC
+            }
+
+            /*
             if (plane.GetSide(currentMesh.vertices[currentMesh.triangles[t]]) ||
                 plane.GetSide(currentMesh.vertices[currentMesh.triangles[t + 1]]) ||
                 plane.GetSide(currentMesh.vertices[currentMesh.triangles[t + 2]])) {
@@ -101,6 +179,7 @@ public class MeshSlicing : MonoBehaviour
             _triangles.Add(_vertices.Count - 3);
             _triangles.Add(_vertices.Count - 2);
             _triangles.Add(_vertices.Count - 1);
+            */
             
         }
         
