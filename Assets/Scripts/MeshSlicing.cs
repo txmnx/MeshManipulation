@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [ExecuteInEditMode]
 public class MeshSlicing : MonoBehaviour
@@ -16,6 +17,8 @@ public class MeshSlicing : MonoBehaviour
         new Vector3(0, 0, -2)
     };
 
+    public bool drawintersectionVertices = false;
+
     [HideInInspector]
     public bool isCloned = false;
 
@@ -25,6 +28,9 @@ public class MeshSlicing : MonoBehaviour
         currentMesh = defaultMesh;
         isCloned = true;
     }
+
+
+
 
     public void SliceMesh()
     {
@@ -78,11 +84,160 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
+    List<Vector3> GetConnectedVertices(List<Vector3> vertices, List<int> triangles, Vector3 vertex)
+    {
+        List<Vector3> connectedVertices = new List<Vector3>();
+
+        for (int t = 0; t < triangles.Count - 3; t += 3) {
+            if (EqualsVertexMargin(vertices[triangles[t]], vertex)) {
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 1]])) {
+                    connectedVertices.Add(vertices[triangles[t + 1]]);
+                }
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 2]])) {
+                    connectedVertices.Add(vertices[triangles[t + 2]]);
+                }
+            }
+            else if (EqualsVertexMargin(vertices[triangles[t + 1]], vertex)) {
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 2]])) {
+                    connectedVertices.Add(vertices[triangles[t + 2]]);
+                }
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t]])) {
+                    connectedVertices.Add(vertices[triangles[t]]);
+                }
+            }
+            else if (EqualsVertexMargin(vertices[triangles[t + 2]], vertex)) {
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t]])) {
+                    connectedVertices.Add(vertices[triangles[t]]);
+                }
+                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 1]])) {
+                    connectedVertices.Add(vertices[triangles[t + 1]]);
+                }
+            }
+        }
+
+        return connectedVertices;
+    }
+
+    bool FloatEqualsMargin(float f1, float f2)
+    {
+        return ((f1 - f2) * (f1 - f2) < 9.99999944E-6f);
+    }
+
+    List<Vector3> SortIntersectionVertices(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
+    {
+        List<Vector3> sortedVertices = new List<Vector3>();
+
+        Vector3 pA = intersectionVertices[0];
+
+
+        List<Vector3> connectedVerticesPA = GetConnectedVertices(vertices, triangles, pA);
+        List<Vector3> connectedVerticesPAInter = new List<Vector3>();
+
+
+        foreach (Vector3 intersectedVertex in intersectionVertices) {
+            if (connectedVerticesPAInter.Count == 2) break;
+
+            if (EqualsVertexMargin(intersectedVertex, pA)) continue;
+            if (ContainsVertexMargin(connectedVerticesPAInter, intersectedVertex)) continue;
+            if (ContainsVertexMargin(connectedVerticesPA, intersectedVertex)) {
+                connectedVerticesPAInter.Add(intersectedVertex);
+            }
+        }
+
+        Vector3 pB = connectedVerticesPAInter[0];
+
+        sortedVertices.Add(pA);
+
+        if (connectedVerticesPAInter.Count == 1) {
+            RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pB);
+        }
+        else {
+            Vector3 pC = connectedVerticesPAInter[1];
+
+            Vector3 normalAB = Vector3.Cross(pA, pB);
+            Vector3 normalAC = Vector3.Cross(pA, pC);
+
+            if (FloatEqualsMargin(Vector3.Dot(normalAB.normalized, plane.normal.normalized), 1f)) {
+                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pC);
+            }
+            else {
+                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pB);
+            }
+        }
+
+
+        return sortedVertices;
+    }
+
+    bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
+    {
+        return (Vector3.SqrMagnitude(v1 - v2) < 9.99999944E-6f);
+    }
+
+    bool ContainsVertexMargin(List<Vector3> vertices, Vector3 compareVertex)
+    {
+        foreach (Vector3 vertex in vertices) {
+            if (Vector3.SqrMagnitude(vertex - compareVertex) < 9.99999944E-6f) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    void RecursiveSortIntersectionVertices(List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices, List<Vector3> sortedVertices, Vector3 currentVertex)
+    {
+        foreach (Vector3 intersectedVertex in intersectionVertices) {
+            if (EqualsVertexMargin(intersectedVertex, currentVertex)) continue;
+            if (ContainsVertexMargin(sortedVertices, intersectedVertex)) continue;
+            if (ContainsVertexMargin(GetConnectedVertices(vertices, triangles, currentVertex), intersectedVertex)) {
+                sortedVertices.Add(intersectedVertex);
+                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, intersectedVertex);
+            }
+        }
+    }
+
+    void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
+    {
+        List<Vector3> sortedIntersectionVertices = SortIntersectionVertices(plane, vertices, triangles, intersectionVertices);
+
+        //Methode naive
+        Vector3 anchorPoint = sortedIntersectionVertices[0];
+
+
+        for (int t = 1; t < sortedIntersectionVertices.Count - 1; t++) {
+            AddTriangle(
+                vertices,
+                triangles,
+                sortedIntersectionVertices[t],
+                sortedIntersectionVertices[t - 1],
+                anchorPoint
+            );
+            AddTriangle(
+                vertices,
+                triangles,
+                sortedIntersectionVertices[t + 1],
+                sortedIntersectionVertices[t],
+                anchorPoint
+            );
+        }
+
+        AddTriangle(
+            vertices,
+            triangles,
+            sortedIntersectionVertices[sortedIntersectionVertices.Count - 1],
+            sortedIntersectionVertices[1],
+            anchorPoint
+        );
+    }
+
     public PartMesh GeneratePartMesh(Plane plane)
     {
         List<Vector3> _vertices = new List<Vector3>();
         List<int> _triangles = new List<int>();
 
+        intersectionVertices.Clear();
 
         Vector3 pA;
         Vector3 pB;
@@ -111,14 +266,15 @@ public class MeshSlicing : MonoBehaviour
                 continue;
             }
 
+
             isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
-            //if (isEdgeABIntersected) intersectionVertices.Add(interAB);
+            if (isEdgeABIntersected) intersectionVertices.Add(interAB);
 
             isEdgeCAIntersected = GetIntersectionVertex(plane, pC, pA, out interCA);
-            //if (isEdgeCAIntersected) intersectionVertices.Add(interCA);
+            if (isEdgeCAIntersected) intersectionVertices.Add(interCA);
 
             isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
-            //if (isEdgeBCIntersected) intersectionVertices.Add(interBC);
+            if (isEdgeBCIntersected) intersectionVertices.Add(interBC);
 
 
             //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
@@ -214,7 +370,8 @@ public class MeshSlicing : MonoBehaviour
                 }
             }
         }
-        
+
+        FillHoleCut(plane, _vertices, _triangles, intersectionVertices);
 
         return new PartMesh()
         {
@@ -256,9 +413,11 @@ public class MeshSlicing : MonoBehaviour
             Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
         }
 
-        Gizmos.color = new Color(0, 1, 0, 0.3f);
-        foreach (Vector3 vertex in intersectionVertices) {
-            Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
+        if (drawintersectionVertices) {
+            Gizmos.color = new Color(0, 1, 0, 0.3f);
+            foreach (Vector3 vertex in intersectionVertices) {
+                Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
+            }
         }
     }
 }
