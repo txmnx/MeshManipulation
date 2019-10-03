@@ -33,15 +33,15 @@ public class MeshSlicing : MonoBehaviour
         List<PartMesh> parts = new List<PartMesh>();
 
         parts.Add(GeneratePartMesh(plane));
-        parts.Add(GeneratePartMesh(plane.flipped));
+        //parts.Add(GeneratePartMesh(plane.flipped));
 
-        /*
+        
         foreach (PartMesh part in parts) {
             part.MakeGameObject(this);
         }
 
-        DestroyImmediate(gameObject);
-        */
+        //DestroyImmediate(gameObject);
+        
     }
 
     bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out Vector3 vertex)
@@ -78,34 +78,6 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
-    void AddTrianglesWithCutingLine(List<Vector3> vertices, List<int> triangles, Vector3 pA, Vector3 pB, Vector3 pC, Vector3 interAB, Vector3 interAC)
-    {
-        //Triangle A interAB interAC
-        AddTriangle(
-            vertices,
-            triangles,
-            pA,
-            interAB,
-            interAC
-        );
-        //Triangle interAB B interAC
-        AddTriangle(
-            vertices,
-            triangles,
-            interAB,
-            pB,
-            interAC
-        );
-        //Triangle interAC B C
-        AddTriangle(
-            vertices,
-            triangles,
-            interAC,
-            pB,
-            pC
-        );
-    }
-
     public PartMesh GeneratePartMesh(Plane plane)
     {
         List<Vector3> _vertices = new List<Vector3>();
@@ -117,98 +89,130 @@ public class MeshSlicing : MonoBehaviour
         Vector3 pC;
 
         Vector3 interAB;
-        Vector3 interAC;
+        Vector3 interCA;
         Vector3 interBC;
 
         bool isEdgeABIntersected;
-        bool isEdgeACIntersected;
+        bool isEdgeCAIntersected;
         bool isEdgeBCIntersected;
 
-        for (int t = 0; t < currentMesh.triangles.Length - 3; t += 3) {
+        for (int t = 0; t < currentMesh.triangles.Length; t += 3) {
+
             pA = currentMesh.vertices[currentMesh.triangles[t]];
             pB = currentMesh.vertices[currentMesh.triangles[t + 1]];
             pC = currentMesh.vertices[currentMesh.triangles[t + 2]];
 
 
-            isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
-            //if (isEdgeABIntersected) intersectionVertices.Add(vertex);
+            if (plane.GetSide(pA) &&
+                plane.GetSide(pB) &&
+                plane.GetSide(pC)) {
 
-            isEdgeACIntersected = GetIntersectionVertex(plane, pA, pC, out interAC);
-            //if (isEdgeACIntersected) intersectionVertices.Add(vertex);
-
-            isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
-            //if (isEdgeBCIntersected) intersectionVertices.Add(vertex);
-
-
-            //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
-            if (isEdgeABIntersected && isEdgeACIntersected) {
-                //Triangle A interAB interAC
-                AddTriangle(
-                    _vertices,
-                    _triangles,
-                    pA,
-                    interAB,
-                    interAC
-                );
-                //Triangle interAB B interAC
-                AddTriangle(
-                    _vertices,
-                    _triangles,
-                    interAB,
-                    pB,
-                    interAC
-                );
-                //Triangle interAC B C
-                AddTriangle(
-                    _vertices,
-                    _triangles,
-                    interAC,
-                    pB,
-                    pC
-                );
-            }
-            else if (isEdgeABIntersected && isEdgeBCIntersected) {
-                //Triangle B interBC interAB
-                AddTriangle(
-                    _vertices,
-                    _triangles,
-                    pB,
-                    interBC,
-                    interAB
-                );
-                //Triangle A C interAB
-                //Triangle interBC C interAB
-
-            }
-            else if (isEdgeACIntersected && isEdgeBCIntersected) {
-                //Triangle C interAC interBC
-                AddTriangle(
-                    _vertices,
-                    _triangles,
-                    pC,
-                    interAC,
-                    interBC
-                );
-                //Triangle interAC A B
-                //Triangle B interBC interAC
-            }
-
-            /*
-            if (plane.GetSide(currentMesh.vertices[currentMesh.triangles[t]]) ||
-                plane.GetSide(currentMesh.vertices[currentMesh.triangles[t + 1]]) ||
-                plane.GetSide(currentMesh.vertices[currentMesh.triangles[t + 2]])) {
-
+                AddTriangle(_vertices, _triangles, pA, pB, pC);
                 continue;
             }
 
-            _vertices.Add(currentMesh.vertices[currentMesh.triangles[t]]);
-            _vertices.Add(currentMesh.vertices[currentMesh.triangles[t + 1]]);
-            _vertices.Add(currentMesh.vertices[currentMesh.triangles[t + 2]]);
-            _triangles.Add(_vertices.Count - 3);
-            _triangles.Add(_vertices.Count - 2);
-            _triangles.Add(_vertices.Count - 1);
-            */
-            
+            isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
+            //if (isEdgeABIntersected) intersectionVertices.Add(interAB);
+
+            isEdgeCAIntersected = GetIntersectionVertex(plane, pC, pA, out interCA);
+            //if (isEdgeCAIntersected) intersectionVertices.Add(interCA);
+
+            isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
+            //if (isEdgeBCIntersected) intersectionVertices.Add(interBC);
+
+
+            //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
+            if (isEdgeABIntersected && isEdgeCAIntersected) {
+                //Triangle A interAB interAC
+                if (plane.GetSide(pA)) {
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        pA,
+                        interAB,
+                        interCA
+                    );
+                }
+                else {
+                    //Triangle interAB B interAC
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        interAB,
+                        pB,
+                        interCA
+                    );
+                    //Triangle interAC B C
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        interCA,
+                        pB,
+                        pC
+                    );
+                }
+            }
+            else if (isEdgeABIntersected && isEdgeBCIntersected) {
+                if (plane.GetSide(pB)) {
+                    //Triangle B interBC interAB
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        pB,
+                        interBC,
+                        interAB
+                    );
+                }
+                else {
+                    //Triangle A C interAB
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        pA,
+                        interAB,
+                        pC
+                    );
+                    //Triangle interBC C interAB
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        interBC,
+                        pC,
+                        interAB
+                    );
+                }
+                
+            }
+            else if (isEdgeCAIntersected && isEdgeBCIntersected) {
+                if (plane.GetSide(pC)) {
+                    //Triangle C interAC interBC
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        pC,
+                        interCA,
+                        interBC
+                    );
+                }
+                else {
+                    //Triangle interAC A B
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        interCA,
+                        pA,
+                        pB
+                    );
+                    //Triangle B interBC interAC
+                    AddTriangle(
+                        _vertices,
+                        _triangles,
+                        pB,
+                        interBC,
+                        interCA
+                    );
+                }
+            }
         }
         
 
