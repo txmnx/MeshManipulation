@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
+using System;
 
 [ExecuteInEditMode]
 public class MeshSlicing : MonoBehaviour
@@ -84,89 +84,9 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
-    List<Vector3> GetConnectedVertices(List<Vector3> vertices, List<int> triangles, Vector3 vertex)
-    {
-        List<Vector3> connectedVertices = new List<Vector3>();
-
-        for (int t = 0; t < triangles.Count - 3; t += 3) {
-            if (EqualsVertexMargin(vertices[triangles[t]], vertex)) {
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 1]])) {
-                    connectedVertices.Add(vertices[triangles[t + 1]]);
-                }
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 2]])) {
-                    connectedVertices.Add(vertices[triangles[t + 2]]);
-                }
-            }
-            else if (EqualsVertexMargin(vertices[triangles[t + 1]], vertex)) {
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 2]])) {
-                    connectedVertices.Add(vertices[triangles[t + 2]]);
-                }
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t]])) {
-                    connectedVertices.Add(vertices[triangles[t]]);
-                }
-            }
-            else if (EqualsVertexMargin(vertices[triangles[t + 2]], vertex)) {
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t]])) {
-                    connectedVertices.Add(vertices[triangles[t]]);
-                }
-                if (!ContainsVertexMargin(connectedVertices, vertices[triangles[t + 1]])) {
-                    connectedVertices.Add(vertices[triangles[t + 1]]);
-                }
-            }
-        }
-
-        return connectedVertices;
-    }
-
     bool FloatEqualsMargin(float f1, float f2)
     {
         return ((f1 - f2) * (f1 - f2) < 9.99999944E-6f);
-    }
-
-    List<Vector3> SortIntersectionVertices(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
-    {
-        List<Vector3> sortedVertices = new List<Vector3>();
-
-        Vector3 pA = intersectionVertices[0];
-
-
-        List<Vector3> connectedVerticesPA = GetConnectedVertices(vertices, triangles, pA);
-        List<Vector3> connectedVerticesPAInter = new List<Vector3>();
-
-
-        foreach (Vector3 intersectedVertex in intersectionVertices) {
-            if (connectedVerticesPAInter.Count == 2) break;
-
-            if (EqualsVertexMargin(intersectedVertex, pA)) continue;
-            if (ContainsVertexMargin(connectedVerticesPAInter, intersectedVertex)) continue;
-            if (ContainsVertexMargin(connectedVerticesPA, intersectedVertex)) {
-                connectedVerticesPAInter.Add(intersectedVertex);
-            }
-        }
-
-        Vector3 pB = connectedVerticesPAInter[0];
-
-        sortedVertices.Add(pA);
-
-        if (connectedVerticesPAInter.Count == 1) {
-            RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pB);
-        }
-        else {
-            Vector3 pC = connectedVerticesPAInter[1];
-
-            Vector3 normalAB = Vector3.Cross(pA, pB);
-            Vector3 normalAC = Vector3.Cross(pA, pC);
-
-            if (FloatEqualsMargin(Vector3.Dot(normalAB.normalized, plane.normal.normalized), 1f)) {
-                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pC);
-            }
-            else {
-                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, pB);
-            }
-        }
-
-
-        return sortedVertices;
     }
 
     bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
@@ -186,17 +106,45 @@ public class MeshSlicing : MonoBehaviour
     }
 
 
-    void RecursiveSortIntersectionVertices(List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices, List<Vector3> sortedVertices, Vector3 currentVertex)
+
+    List<Vector3> SortIntersectionVertices(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
     {
-        foreach (Vector3 intersectedVertex in intersectionVertices) {
-            if (EqualsVertexMargin(intersectedVertex, currentVertex)) continue;
-            if (ContainsVertexMargin(sortedVertices, intersectedVertex)) continue;
-            if (ContainsVertexMargin(GetConnectedVertices(vertices, triangles, currentVertex), intersectedVertex)) {
-                sortedVertices.Add(intersectedVertex);
-                RecursiveSortIntersectionVertices(vertices, triangles, intersectionVertices, sortedVertices, intersectedVertex);
+        List<Vector3> sortedVertices = new List<Vector3>();
+        sortedVertices = intersectionVertices;
+
+
+        Vector3 pA = intersectionVertices[0];
+        Vector3 pTemp = intersectionVertices[1];
+        Vector3 dirPlane = pTemp - pA;
+
+        Vector3 pB = new Vector3();
+
+        float minAngle = 360f;
+        float iterAngle;
+        bool hasFound = false;
+
+        Debug.Log("pB : " + pB);
+
+        for (int i = 2; i < intersectionVertices.Count; i++) {
+            iterAngle = Vector3.SignedAngle(dirPlane.normalized, (intersectionVertices[i] - pA).normalized, -plane.normal);
+            Debug.Log(iterAngle);
+            //iterAngle > 0 ou < 0 selon ???
+            if (iterAngle < 0 && iterAngle < minAngle) {
+                Debug.Log("ok!!");
+                minAngle = iterAngle;
+                pB = intersectionVertices[i];
+                hasFound = true;
             }
         }
+
+        if (!hasFound) pB = pTemp;
+
+        Debug.Log(pA + " " + pB);
+
+        return sortedVertices;
     }
+
+
 
     void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
     {
@@ -211,25 +159,10 @@ public class MeshSlicing : MonoBehaviour
                 vertices,
                 triangles,
                 sortedIntersectionVertices[t],
-                sortedIntersectionVertices[t - 1],
-                anchorPoint
-            );
-            AddTriangle(
-                vertices,
-                triangles,
                 sortedIntersectionVertices[t + 1],
-                sortedIntersectionVertices[t],
                 anchorPoint
             );
         }
-
-        AddTriangle(
-            vertices,
-            triangles,
-            sortedIntersectionVertices[sortedIntersectionVertices.Count - 1],
-            sortedIntersectionVertices[1],
-            anchorPoint
-        );
     }
 
     public PartMesh GeneratePartMesh(Plane plane)
