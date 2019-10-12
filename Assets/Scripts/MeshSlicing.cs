@@ -89,6 +89,7 @@ public class MeshSlicing : MonoBehaviour
         return ((f1 - f2) * (f1 - f2) < 9.99999944E-6f);
     }
 
+    //TODO : Vector3 == Vector3 equivaut à (Vector3.SqrMagnitude(v1 - v2) < 1E-5f) avec Unity ; on peut plutot utiliser ça
     bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
     {
         return (Vector3.SqrMagnitude(v1 - v2) < 9.99999944E-6f);
@@ -123,14 +124,12 @@ public class MeshSlicing : MonoBehaviour
         float iterAngle;
         bool hasFound = false;
 
-        Debug.Log("pB : " + pB);
 
         for (int i = 2; i < intersectionVertices.Count; i++) {
             iterAngle = Vector3.SignedAngle(dirPlane.normalized, (intersectionVertices[i] - pA).normalized, -plane.normal);
-            Debug.Log(iterAngle);
+
             //iterAngle > 0 ou < 0 selon ???
             if (iterAngle < 0 && iterAngle < minAngle) {
-                Debug.Log("ok!!");
                 minAngle = iterAngle;
                 pB = intersectionVertices[i];
                 hasFound = true;
@@ -139,16 +138,18 @@ public class MeshSlicing : MonoBehaviour
 
         if (!hasFound) pB = pTemp;
 
-        Debug.Log(pA + " " + pB);
-
         return sortedVertices;
     }
-
 
 
     void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
     {
         List<Vector3> sortedIntersectionVertices = SortIntersectionVertices(plane, vertices, triangles, intersectionVertices);
+
+        //Debug.Log(intersectionVertices.Count);
+        //foreach(Vector3 vert in intersectionVertices) {
+        //    Debug.Log(vert.ToString("F20"));
+        //}
 
         //Methode naive
         Vector3 anchorPoint = sortedIntersectionVertices[0];
@@ -201,14 +202,13 @@ public class MeshSlicing : MonoBehaviour
 
 
             isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
-            if (isEdgeABIntersected) intersectionVertices.Add(interAB);
+            if (isEdgeABIntersected && !ContainsVertexMargin(intersectionVertices, interAB)) intersectionVertices.Add(interAB);
 
             isEdgeCAIntersected = GetIntersectionVertex(plane, pC, pA, out interCA);
-            if (isEdgeCAIntersected) intersectionVertices.Add(interCA);
+            if (isEdgeCAIntersected && !ContainsVertexMargin(intersectionVertices, interCA)) intersectionVertices.Add(interCA);
 
             isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
-            if (isEdgeBCIntersected) intersectionVertices.Add(interBC);
-
+            if (isEdgeBCIntersected && !ContainsVertexMargin(intersectionVertices, interBC)) intersectionVertices.Add(interBC);
 
             //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
             if (isEdgeABIntersected && isEdgeCAIntersected) {
@@ -304,6 +304,7 @@ public class MeshSlicing : MonoBehaviour
             }
         }
 
+        Debug.Log(intersectionVertices.Count);
         FillHoleCut(plane, _vertices, _triangles, intersectionVertices);
 
         return new PartMesh()
