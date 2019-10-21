@@ -84,21 +84,16 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
-    bool FloatEqualsMargin(float f1, float f2)
-    {
-        return ((f1 - f2) * (f1 - f2) < 9.99999944E-6f);
-    }
-
     //TODO : Vector3 == Vector3 equivaut à (Vector3.SqrMagnitude(v1 - v2) < 1E-5f) avec Unity ; on peut plutot utiliser ça
     bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
     {
-        return (Vector3.SqrMagnitude(v1 - v2) < 9.99999944E-6f);
+        return (Vector3.SqrMagnitude(v1 - v2) < 1E-6f);
     }
 
     bool ContainsVertexMargin(List<Vector3> vertices, Vector3 compareVertex)
     {
         foreach (Vector3 vertex in vertices) {
-            if (Vector3.SqrMagnitude(vertex - compareVertex) < 9.99999944E-6f) {
+            if (Vector3.SqrMagnitude(vertex - compareVertex) < 1E-6f) {
                 return true;
             }
         }
@@ -106,37 +101,131 @@ public class MeshSlicing : MonoBehaviour
         return false;
     }
 
+    /* Retourne -1 si la liste de vertex est vide */
+    int GetIndexOfClosestVertex(List<int> listVertexIndex, Vector3 vertex)
+    {
+        int index = -1;
 
+        if (listVertexIndex.Count > 0) {
+            index = listVertexIndex[0];
+
+            if (listVertexIndex.Count > 1) {
+                float minDistance = Vector3.Distance(intersectionVertices[listVertexIndex[0]], vertex);
+                float currentDistance = minDistance;
+
+                for (int i = 1; i < listVertexIndex.Count; i++) {
+                    currentDistance = Vector3.Distance(intersectionVertices[listVertexIndex[i]], vertex);
+                    if (currentDistance < minDistance) {
+                        index = listVertexIndex[i];
+                    }
+                }
+            }
+        }
+
+        return index;
+    }
 
     List<Vector3> SortIntersectionVertices(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
     {
         List<Vector3> sortedVertices = new List<Vector3>();
-        sortedVertices = intersectionVertices;
 
 
         Vector3 pA = intersectionVertices[0];
         Vector3 pTemp = intersectionVertices[1];
         Vector3 dirPlane = pTemp - pA;
 
-        Vector3 pB = new Vector3();
+        int pBIndex = 1;
 
-        float minAngle = 360f;
+        float maxAngle = 0f;
         float iterAngle;
-        bool hasFound = false;
 
+        List<int> sameAngleVertexIndex = new List<int>();
+        
 
+        /* Permet de trouver le premier point après intersectionVertices[0] */
         for (int i = 2; i < intersectionVertices.Count; i++) {
-            iterAngle = Vector3.SignedAngle(dirPlane.normalized, (intersectionVertices[i] - pA).normalized, -plane.normal);
+            iterAngle = Vector3.SignedAngle(dirPlane.normalized, (intersectionVertices[i] - pA).normalized, plane.normal);
 
-            //iterAngle > 0 ou < 0 selon ???
-            if (iterAngle < 0 && iterAngle < minAngle) {
-                minAngle = iterAngle;
-                pB = intersectionVertices[i];
-                hasFound = true;
+            Debug.Log($"Angle du point {i}: {iterAngle}");
+
+            if (iterAngle >= maxAngle || iterAngle == -180) {
+                iterAngle = (iterAngle == -180f) ? 180f : iterAngle;
+
+                if (iterAngle != maxAngle) {
+                    sameAngleVertexIndex.Clear();
+                }
+
+                sameAngleVertexIndex.Add(i);
+                maxAngle = iterAngle;
             }
         }
 
-        if (!hasFound) pB = pTemp;
+        /* 
+         * TODO : si jamais le point retenu forme un angle de 180 alors on doit choisir entre lui et le point t[1]
+         * car ils sont colineaires et comme ce point forme un angle de 180 au lieu de -180 il est retenu et "passe devant" t[1]
+         * 
+         * Methode : regarder les autres points - les 3 points t[0] t[1] et le point retenu (X) sont colinéaires ; ils forment une droite
+         * tels que 
+         *                      1
+         *                      |       d
+         *                      0
+         *              g       |
+         *                      X
+         * 
+         * 
+         * si on trouve un autre point "a gauche" de cette droite (point g), alors on choisit le point X
+         * sinon si on trouve un point "a droite" (point d), alors on choisit le point t[1]
+         * 
+         * Si on ne trouve pas d'autre point, ou du moins pas d'autre point qui ne pas soit colinéaires avec nos 3 points
+         * alors tant pis, de toute manière ce cas de figure devrait etre exclus dans la mesure ou on ne devrait pas pouvoir 
+         * couper juste une "arete" d'une mesh
+         *
+         */
+
+        if (sameAngleVertexIndex.Count > 1) {
+            Debug.Log("Colineaires !!");
+            
+            int closestVertexIndex = GetIndexOfClosestVertex(sameAngleVertexIndex, pA);
+            pBIndex = closestVertexIndex;
+        }
+        else {
+            pBIndex = (sameAngleVertexIndex.Count == 0) ? pBIndex : sameAngleVertexIndex[0];
+        }
+
+        Debug.Log($"pBIndex : {pBIndex}");
+
+        //float maxAngle = -180f;
+
+
+        ///* On place le deuxième point trié en 2eme dans la liste */
+        Vector3 tmpVector = intersectionVertices[1];
+        intersectionVertices[1] = intersectionVertices[pBIndex];
+        intersectionVertices[pBIndex] = tmpVector;
+
+        sortedVertices.Add(pA);
+        sortedVertices.Add(intersectionVertices[1]);
+
+        //List<Vector3> uncheckedVertices = new List<Vector3>(intersectionVertices);
+        //uncheckedVertices.Remove(pA);
+        //uncheckedVertices.Remove(intersectionVertices[1]);
+
+        //Debug.Log($"taille uncheck : {uncheckedVertices.Count}");
+
+        ///* Pour chaque point trouve le prochain point */
+        //for (int i = 2; i < intersectionVertices.Count; i++) {
+        //    uncheckedVertices.Remove(intersectionVertices[i]);
+        //    Debug.Log($"taille intersectionVertices : {intersectionVertices.Count}");
+        //    foreach (Vector3 vertex in uncheckedVertices) {
+        //        iterAngle = Vector3.SignedAngle((intersectionVertices[i - 1] - intersectionVertices[i]).normalized, (vertex - intersectionVertices[i - 1]).normalized, -plane.normal);
+        //        //Debug.Log($"Angle : {iterAngle}");
+        //        if (iterAngle < 0 && iterAngle >= maxAngle) {
+        //            maxAngle = iterAngle;
+        //            uncheckedVertices.Remove(vertex);
+        //            sortedVertices.Add(intersectionVertices[i]);
+        //            break;
+        //        }
+        //    }
+        //}
 
         return sortedVertices;
     }
@@ -146,10 +235,8 @@ public class MeshSlicing : MonoBehaviour
     {
         List<Vector3> sortedIntersectionVertices = SortIntersectionVertices(plane, vertices, triangles, intersectionVertices);
 
-        //Debug.Log(intersectionVertices.Count);
-        //foreach(Vector3 vert in intersectionVertices) {
-        //    Debug.Log(vert.ToString("F20"));
-        //}
+
+        intersectionVertices = sortedIntersectionVertices;
 
         //Methode naive
         Vector3 anchorPoint = sortedIntersectionVertices[0];
@@ -304,7 +391,6 @@ public class MeshSlicing : MonoBehaviour
             }
         }
 
-        Debug.Log(intersectionVertices.Count);
         FillHoleCut(plane, _vertices, _triangles, intersectionVertices);
 
         return new PartMesh()
@@ -352,6 +438,14 @@ public class MeshSlicing : MonoBehaviour
             foreach (Vector3 vertex in intersectionVertices) {
                 Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
             }
+            for (int i = 0; i < intersectionVertices.Count - 1; i++) {
+                if (i == 0) Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.2f);
+                else if (i == 1) Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.1f);
+                else Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.05f);
+            }
         }
+
+        Plane plane = new Plane(planeVertices[0], planeVertices[1], planeVertices[2]);
+        Debug.DrawLine(planeVertices[0] + transform.position, planeVertices[0] + plane.normal + transform.position);
     }
 }
