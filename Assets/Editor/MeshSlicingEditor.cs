@@ -17,13 +17,11 @@ public class MeshSlicingEditor : Editor
     {
         DrawDefaultInspector();
 
-        if (mesh.isCloned) {
-            if (GUILayout.Button("Slice mesh")) {
-                mesh.SliceMesh();
-            }
-
-            if (GUILayout.Button("Reset")) {
-                mesh.ResetMesh();
+        if (mesh != null) {
+            if (mesh.isCloned) {
+                if (GUILayout.Button("Slice mesh")) {
+                    mesh.SliceMesh();
+                }
             }
         }
     }

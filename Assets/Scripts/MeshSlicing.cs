@@ -9,15 +9,13 @@ public class MeshSlicing : MonoBehaviour
     Mesh defaultMesh;
     Mesh currentMesh;
 
-    List<Vector3> intersectionVertices = new List<Vector3>();
+    List<Vector3> drawConvexHull = new List<Vector3>();
 
     public Vector3[] planeVertices = {
         new Vector3(2, 0, 1),
         new Vector3(-2, 0, 1),
         new Vector3(0, 0, -2)
     };
-
-    public bool drawintersectionVertices = false;
 
     [HideInInspector]
     public bool isCloned = false;
@@ -39,7 +37,6 @@ public class MeshSlicing : MonoBehaviour
         List<PartMesh> parts = new List<PartMesh>();
 
         parts.Add(GeneratePartMesh(plane));
-        //parts.Add(GeneratePartMesh(plane.flipped));
 
         
         foreach (PartMesh part in parts) {
@@ -50,6 +47,7 @@ public class MeshSlicing : MonoBehaviour
         
     }
 
+    /* TODO : trouver une solution plus rapide que de passer par un Raycast */
     bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out Vector3 vertex)
     {
         Ray ray = new Ray();
@@ -62,16 +60,14 @@ public class MeshSlicing : MonoBehaviour
         if (plane.Raycast(ray, out enter)) {
             Vector3 point = ray.GetPoint(enter);
             float dotProduct = Vector3.Dot(pointB - pointA, point - pointA);
+
             if (dotProduct > 0 && dotProduct < Vector3.Distance(pointA, pointB)* Vector3.Distance(pointA, pointB)) {
                 vertex = point;
                 return true;
             }
+        }
 
-            return false;
-        }
-        else {
-            return false;
-        }
+        return false;
     }
 
     void AddTriangle(List<Vector3> vertices, List<int> triangles, Vector3 p1, Vector3 p2, Vector3 p3)
@@ -101,164 +97,85 @@ public class MeshSlicing : MonoBehaviour
         return false;
     }
 
-    /* Retourne -1 si la liste de vertex est vide */
-    int GetIndexOfClosestVertex(List<int> listVertexIndex, Vector3 vertex)
+    /**
+     * Algorithme d'Andrew's Monotone Chain.
+     * Inspiré de https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain 
+     */
+    PlanePoint[] ConvexHull(PlanePoint[] points)
     {
-        int index = -1;
+        int k = 0;
 
-        if (listVertexIndex.Count > 0) {
-            index = listVertexIndex[0];
+        /* TODO : gerer cette exception, on ne peut pas trianguler un ensemble de moins de 3 points */
+        if (points.Length < 3) return points;
 
-            if (listVertexIndex.Count > 1) {
-                float minDistance = Vector3.Distance(intersectionVertices[listVertexIndex[0]], vertex);
-                float currentDistance = minDistance;
+        Array.Sort<PlanePoint>(points);
 
-                for (int i = 1; i < listVertexIndex.Count; i++) {
-                    currentDistance = Vector3.Distance(intersectionVertices[listVertexIndex[i]], vertex);
-                    if (currentDistance < minDistance) {
-                        index = listVertexIndex[i];
-                    }
-                }
+        //Avec cet algorithme le dernier point de la liste est le meme que le premier
+        PlanePoint[] hull = new PlanePoint[points.Length + 1];
+
+        //La partie basse de l'enveloppe convexe
+        for(int i = 0; i < points.Length; ++i) {
+            while (k >= 2 && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
+                k--;
             }
+
+            hull[k++] = points[i];
         }
 
-        return index;
-    }
-
-    List<Vector3> SortIntersectionVertices(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
-    {
-        List<Vector3> sortedVertices = new List<Vector3>();
-
-
-        Vector3 pA = intersectionVertices[0];
-        Vector3 pTemp = intersectionVertices[1];
-        Vector3 dirPlane = pTemp - pA;
-
-        int pBIndex = 1;
-
-        float maxAngle = 0f;
-        float iterAngle;
-
-        List<int> sameAngleVertexIndex = new List<int>();
-        
-
-        /* Permet de trouver le premier point après intersectionVertices[0] */
-        for (int i = 2; i < intersectionVertices.Count; i++) {
-            iterAngle = Vector3.SignedAngle(dirPlane.normalized, (intersectionVertices[i] - pA).normalized, plane.normal);
-
-            Debug.Log($"Angle du point {i}: {iterAngle}");
-
-            if (iterAngle >= maxAngle || iterAngle == -180) {
-                iterAngle = (iterAngle == -180f) ? 180f : iterAngle;
-
-                if (iterAngle != maxAngle) {
-                    sameAngleVertexIndex.Clear();
-                }
-
-                sameAngleVertexIndex.Add(i);
-                maxAngle = iterAngle;
+        //La partie haute de l'enveloppe convexe
+        for (int i = points.Length - 2, t = k + 1; i >= 0; --i) {
+            while (k >= t && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
+                k--;
             }
+
+            hull[k++] = points[i];
         }
 
-        /* 
-         * TODO : si jamais le point retenu forme un angle de 180 alors on doit choisir entre lui et le point t[1]
-         * car ils sont colineaires et comme ce point forme un angle de 180 au lieu de -180 il est retenu et "passe devant" t[1]
-         * 
-         * Methode : regarder les autres points - les 3 points t[0] t[1] et le point retenu (X) sont colinéaires ; ils forment une droite
-         * tels que 
-         *                      1
-         *                      |       d
-         *                      0
-         *              g       |
-         *                      X
-         * 
-         * 
-         * si on trouve un autre point "a gauche" de cette droite (point g), alors on choisit le point X
-         * sinon si on trouve un point "a droite" (point d), alors on choisit le point t[1]
-         * 
-         * Si on ne trouve pas d'autre point, ou du moins pas d'autre point qui ne pas soit colinéaires avec nos 3 points
-         * alors tant pis, de toute manière ce cas de figure devrait etre exclus dans la mesure ou on ne devrait pas pouvoir 
-         * couper juste une "arete" d'une mesh
-         *
-         */
-
-        if (sameAngleVertexIndex.Count > 1) {
-            Debug.Log("Colineaires !!");
-            
-            int closestVertexIndex = GetIndexOfClosestVertex(sameAngleVertexIndex, pA);
-            pBIndex = closestVertexIndex;
-        }
-        else {
-            pBIndex = (sameAngleVertexIndex.Count == 0) ? pBIndex : sameAngleVertexIndex[0];
+        PlanePoint[] convexHull = new PlanePoint[k - 1];
+        for (int i = 0; i < k - 1; ++i) {
+            convexHull[i] = hull[i];
         }
 
-        Debug.Log($"pBIndex : {pBIndex}");
+        Debug.Log("Intersection hull : " + points.Length);
+        Debug.Log("Convex hull : " + convexHull.Length);
 
-        //float maxAngle = -180f;
+        /* DEBUG */
+        drawConvexHull.Clear();
+        for (int i = 0; i < convexHull.Length; ++i) {
+            drawConvexHull.Add(convexHull[i].worldCoords);
+        }
 
-
-        ///* On place le deuxième point trié en 2eme dans la liste */
-        Vector3 tmpVector = intersectionVertices[1];
-        intersectionVertices[1] = intersectionVertices[pBIndex];
-        intersectionVertices[pBIndex] = tmpVector;
-
-        sortedVertices.Add(pA);
-        sortedVertices.Add(intersectionVertices[1]);
-
-        //List<Vector3> uncheckedVertices = new List<Vector3>(intersectionVertices);
-        //uncheckedVertices.Remove(pA);
-        //uncheckedVertices.Remove(intersectionVertices[1]);
-
-        //Debug.Log($"taille uncheck : {uncheckedVertices.Count}");
-
-        ///* Pour chaque point trouve le prochain point */
-        //for (int i = 2; i < intersectionVertices.Count; i++) {
-        //    uncheckedVertices.Remove(intersectionVertices[i]);
-        //    Debug.Log($"taille intersectionVertices : {intersectionVertices.Count}");
-        //    foreach (Vector3 vertex in uncheckedVertices) {
-        //        iterAngle = Vector3.SignedAngle((intersectionVertices[i - 1] - intersectionVertices[i]).normalized, (vertex - intersectionVertices[i - 1]).normalized, -plane.normal);
-        //        //Debug.Log($"Angle : {iterAngle}");
-        //        if (iterAngle < 0 && iterAngle >= maxAngle) {
-        //            maxAngle = iterAngle;
-        //            uncheckedVertices.Remove(vertex);
-        //            sortedVertices.Add(intersectionVertices[i]);
-        //            break;
-        //        }
-        //    }
-        //}
-
-        return sortedVertices;
+        return convexHull;
     }
-
 
     void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
     {
-        List<Vector3> sortedIntersectionVertices = SortIntersectionVertices(plane, vertices, triangles, intersectionVertices);
+        Vector3 u = Vector3.Cross(plane.normal, Vector3.up).normalized;
+        if (Vector3.zero == u) {
+            u = Vector3.Cross(plane.normal, Vector3.forward).normalized;
+        }
+        Vector3 v = Vector3.Cross(plane.normal, u);
 
+        PlanePoint[] holeCut = new PlanePoint[intersectionVertices.Count];
 
-        intersectionVertices = sortedIntersectionVertices;
+        for (int i = 0; i < intersectionVertices.Count; ++i) {
+            holeCut[i] = new PlanePoint(intersectionVertices[i], u, v);
+        }
 
-        //Methode naive
-        Vector3 anchorPoint = sortedIntersectionVertices[0];
-
-
-        for (int t = 1; t < sortedIntersectionVertices.Count - 1; t++) {
-            AddTriangle(
-                vertices,
-                triangles,
-                sortedIntersectionVertices[t],
-                sortedIntersectionVertices[t + 1],
-                anchorPoint
-            );
+        PlanePoint[] convexHull = ConvexHull(holeCut);
+        
+        for (int i = 2; i < convexHull.Length; ++i) {
+            AddTriangle(vertices, triangles, convexHull[0].worldCoords, convexHull[i].worldCoords, convexHull[i - 1].worldCoords);
         }
     }
+
 
     public PartMesh GeneratePartMesh(Plane plane)
     {
         List<Vector3> _vertices = new List<Vector3>();
         List<int> _triangles = new List<int>();
 
-        intersectionVertices.Clear();
+        List<Vector3> intersectionVertices = new List<Vector3>();
 
         Vector3 pA;
         Vector3 pB;
@@ -400,12 +317,6 @@ public class MeshSlicing : MonoBehaviour
         };
     }
 
-    public void ResetMesh()
-    {
-        intersectionVertices.Clear();
-
-    }
-
     void OnDrawGizmos()
     {
         Gizmos.color = new Color(1, 1, 1, 0.3f);
@@ -428,23 +339,22 @@ public class MeshSlicing : MonoBehaviour
             Gizmos.DrawMesh(_mesh);
         }
 
+        //dessine les points de coupe
+        Gizmos.color = new Color(0, 1, 0, 0.3f);
+        float step = 0.1f / drawConvexHull.Count;
+        float size = step;
+        foreach (Vector3 vertex in drawConvexHull) {
+            Gizmos.DrawSphere(transform.TransformPoint(vertex), size);
+            size += step;
+        }
+
+        //dessine les points du plan
         Gizmos.color = new Color(0, 0, 1, 0.3f);
         foreach (Vector3 vertex in planeVertices) {
             Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
         }
 
-        if (drawintersectionVertices) {
-            Gizmos.color = new Color(0, 1, 0, 0.3f);
-            foreach (Vector3 vertex in intersectionVertices) {
-                Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
-            }
-            for (int i = 0; i < intersectionVertices.Count - 1; i++) {
-                if (i == 0) Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.2f);
-                else if (i == 1) Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.1f);
-                else Gizmos.DrawSphere(transform.TransformPoint(intersectionVertices[i]), 0.05f);
-            }
-        }
-
+        //dessine le plan
         Plane plane = new Plane(planeVertices[0], planeVertices[1], planeVertices[2]);
         Debug.DrawLine(planeVertices[0] + transform.position, planeVertices[0] + plane.normal + transform.position);
     }

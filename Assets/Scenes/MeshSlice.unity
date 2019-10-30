@@ -121,7 +121,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &300722632
+--- !u!1001 &1003672620
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -136,7 +136,7 @@ PrefabInstance:
     - target: {fileID: 3904117457400843302, guid: c794475509b9b4f4f886fbcc132dab67,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 11.52
+      value: 6.555
       objectReference: {fileID: 0}
     - target: {fileID: 3904117457400843302, guid: c794475509b9b4f4f886fbcc132dab67,
         type: 3}
@@ -187,26 +187,6 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 4718207994735000710, guid: c794475509b9b4f4f886fbcc132dab67,
-        type: 3}
-      propertyPath: drawintersectionVertices
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 4718207994735000710, guid: c794475509b9b4f4f886fbcc132dab67,
-        type: 3}
-      propertyPath: planeVertices.Array.data[0].x
-      value: 2.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 4718207994735000710, guid: c794475509b9b4f4f886fbcc132dab67,
-        type: 3}
-      propertyPath: planeVertices.Array.data[0].z
-      value: 1.13
-      objectReference: {fileID: 0}
-    - target: {fileID: 4718207994735000710, guid: c794475509b9b4f4f886fbcc132dab67,
-        type: 3}
-      propertyPath: planeVertices.Array.data[0].y
-      value: 1.22
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c794475509b9b4f4f886fbcc132dab67, type: 3}
