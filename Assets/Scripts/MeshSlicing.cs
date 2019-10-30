@@ -27,7 +27,11 @@ public class MeshSlicing : MonoBehaviour
         isCloned = true;
     }
 
-
+    struct IntersectionVertex
+    {
+        public Vector3 position;
+        public float normalizedDistance;
+    }
 
 
     public void SliceMesh()
@@ -48,21 +52,27 @@ public class MeshSlicing : MonoBehaviour
     }
 
     /* TODO : trouver une solution plus rapide que de passer par un Raycast */
-    bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out Vector3 vertex)
+    bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out IntersectionVertex vertex)
     {
         Ray ray = new Ray();
         ray.origin = pointA;
         ray.direction = Vector3.Normalize(pointB - pointA);
 
-        vertex = Vector3.zero;
+        float _distance = 0.0f;
 
-        float enter = 0.0f;
-        if (plane.Raycast(ray, out enter)) {
-            Vector3 point = ray.GetPoint(enter);
+        vertex = new IntersectionVertex
+        {
+            position = Vector3.zero,
+            normalizedDistance = _distance
+        };
+
+        if (plane.Raycast(ray, out _distance)) {
+            Vector3 point = ray.GetPoint(_distance);
             float dotProduct = Vector3.Dot(pointB - pointA, point - pointA);
 
             if (dotProduct > 0 && dotProduct < Vector3.Distance(pointA, pointB)* Vector3.Distance(pointA, pointB)) {
-                vertex = point;
+                vertex.position = point;
+                vertex.normalizedDistance = _distance / (pointB - pointA).magnitude;
                 return true;
             }
         }
@@ -192,9 +202,9 @@ public class MeshSlicing : MonoBehaviour
         Vector3 nB;
         Vector3 nC;
 
-        Vector3 interAB;
-        Vector3 interCA;
-        Vector3 interBC;
+        IntersectionVertex interAB;
+        IntersectionVertex interCA;
+        IntersectionVertex interBC;
 
         bool isEdgeABIntersected;
         bool isEdgeCAIntersected;
@@ -221,13 +231,13 @@ public class MeshSlicing : MonoBehaviour
 
 
             isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
-            if (isEdgeABIntersected && !ContainsVertexMargin(intersectionVertices, interAB)) intersectionVertices.Add(interAB);
+            if (isEdgeABIntersected && !ContainsVertexMargin(intersectionVertices, interAB.position)) intersectionVertices.Add(interAB.position);
 
             isEdgeCAIntersected = GetIntersectionVertex(plane, pC, pA, out interCA);
-            if (isEdgeCAIntersected && !ContainsVertexMargin(intersectionVertices, interCA)) intersectionVertices.Add(interCA);
+            if (isEdgeCAIntersected && !ContainsVertexMargin(intersectionVertices, interCA.position)) intersectionVertices.Add(interCA.position);
 
             isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
-            if (isEdgeBCIntersected && !ContainsVertexMargin(intersectionVertices, interBC)) intersectionVertices.Add(interBC);
+            if (isEdgeBCIntersected && !ContainsVertexMargin(intersectionVertices, interBC.position)) intersectionVertices.Add(interBC.position);
 
             //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
             if (isEdgeABIntersected && isEdgeCAIntersected) {
@@ -237,31 +247,46 @@ public class MeshSlicing : MonoBehaviour
                         _vertices,
                         _triangles,
                         pA,
-                        interAB,
-                        interCA
+                        interAB.position,
+                        interCA.position
                     );
-                    AddNormals(_normals, nA, nA, nA);
+                    AddNormals(
+                        _normals,
+                        nA,
+                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                    );
                 }
                 else {
                     //Triangle interAB B interAC
                     AddTriangle(
                         _vertices,
                         _triangles,
-                        interAB,
+                        interAB.position,
                         pB,
-                        interCA
+                        interCA.position
                     );
-                    AddNormals(_normals, nB, nB, nB);
+                    AddNormals(
+                        _normals,
+                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
+                        nB,
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                    );
 
                     //Triangle interAC B C
                     AddTriangle(
                         _vertices,
                         _triangles,
-                        interCA,
+                        interCA.position,
                         pB,
                         pC
                     );
-                    AddNormals(_normals, nB, nB, nC);
+                    AddNormals(
+                        _normals,
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
+                        nB,
+                        nC
+                    );
                 }
             }
             else if (isEdgeABIntersected && isEdgeBCIntersected) {
@@ -271,10 +296,15 @@ public class MeshSlicing : MonoBehaviour
                         _vertices,
                         _triangles,
                         pB,
-                        interBC,
-                        interAB
+                        interBC.position,
+                        interAB.position
                     );
-                    AddNormals(_normals, nB, nB, nB);
+                    AddNormals(
+                        _normals,
+                        nB,
+                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
+                        Vector3.Lerp(pA, pB, interAB.normalizedDistance)
+                    );
                 }
                 else {
                     //Triangle A C interAB
@@ -282,20 +312,30 @@ public class MeshSlicing : MonoBehaviour
                         _vertices,
                         _triangles,
                         pA,
-                        interAB,
+                        interAB.position,
                         pC
                     );
-                    AddNormals(_normals, nA, nA, nC);
+                    AddNormals(
+                        _normals,
+                        nA,
+                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
+                        nC
+                    );
 
                     //Triangle interBC C interAB
                     AddTriangle(
                         _vertices,
                         _triangles,
-                        interBC,
+                        interBC.position,
                         pC,
-                        interAB
+                        interAB.position
                     );
-                    AddNormals(_normals, nC, nC, nC);
+                    AddNormals(
+                        _normals,
+                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
+                        nC,
+                        Vector3.Lerp(pA, pB, interAB.normalizedDistance)
+                    );
                 }
                 
             }
@@ -306,31 +346,46 @@ public class MeshSlicing : MonoBehaviour
                         _vertices,
                         _triangles,
                         pC,
-                        interCA,
-                        interBC
+                        interCA.position,
+                        interBC.position
                     );
-                    AddNormals(_normals, nC, nC, nC);
+                    AddNormals(
+                        _normals,
+                        nC,
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
+                        Vector3.Lerp(pB, pC, interBC.normalizedDistance)
+                    );
                 }
                 else {
                     //Triangle interAC A B
                     AddTriangle(
                         _vertices,
                         _triangles,
-                        interCA,
+                        interCA.position,
                         pA,
                         pB
                     );
-                    AddNormals(_normals, nA, nA, nB);
+                    AddNormals(
+                        _normals,
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
+                        nA,
+                        nB
+                    );
 
                     //Triangle B interBC interAC
                     AddTriangle(
                         _vertices,
                         _triangles,
                         pB,
-                        interBC,
-                        interCA
+                        interBC.position,
+                        interCA.position
                     );
-                    AddNormals(_normals, nB, nB, nB);
+                    AddNormals(
+                        _normals,
+                        nB,
+                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
+                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                    );
                 }
             }
         }
