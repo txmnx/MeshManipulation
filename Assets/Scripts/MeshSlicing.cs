@@ -80,6 +80,13 @@ public class MeshSlicing : MonoBehaviour
         triangles.Add(vertices.Count - 1);
     }
 
+    void AddNormals(List<Vector3> normals, Vector3 n1, Vector3 n2, Vector3 n3)
+    {
+        normals.Add(n1);
+        normals.Add(n2);
+        normals.Add(n3);
+    }
+
     //TODO : Vector3 == Vector3 equivaut à (Vector3.SqrMagnitude(v1 - v2) < 1E-5f) avec Unity ; on peut plutot utiliser ça
     bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
     {
@@ -136,8 +143,6 @@ public class MeshSlicing : MonoBehaviour
             convexHull[i] = hull[i];
         }
 
-        Debug.Log("Intersection hull : " + points.Length);
-        Debug.Log("Convex hull : " + convexHull.Length);
 
         /* DEBUG */
         drawConvexHull.Clear();
@@ -148,7 +153,7 @@ public class MeshSlicing : MonoBehaviour
         return convexHull;
     }
 
-    void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> intersectionVertices)
+    void FillHoleCut(Plane plane, List<Vector3> vertices, List<int> triangles, List<Vector3> normals, List<Vector3> intersectionVertices)
     {
         Vector3 u = Vector3.Cross(plane.normal, Vector3.up).normalized;
         if (Vector3.zero == u) {
@@ -166,6 +171,7 @@ public class MeshSlicing : MonoBehaviour
         
         for (int i = 2; i < convexHull.Length; ++i) {
             AddTriangle(vertices, triangles, convexHull[0].worldCoords, convexHull[i].worldCoords, convexHull[i - 1].worldCoords);
+            AddNormals(normals, -plane.normal, -plane.normal, -plane.normal);
         }
     }
 
@@ -174,12 +180,17 @@ public class MeshSlicing : MonoBehaviour
     {
         List<Vector3> _vertices = new List<Vector3>();
         List<int> _triangles = new List<int>();
+        List<Vector3> _normals = new List<Vector3>();
 
         List<Vector3> intersectionVertices = new List<Vector3>();
 
         Vector3 pA;
         Vector3 pB;
         Vector3 pC;
+
+        Vector3 nA;
+        Vector3 nB;
+        Vector3 nC;
 
         Vector3 interAB;
         Vector3 interCA;
@@ -195,12 +206,16 @@ public class MeshSlicing : MonoBehaviour
             pB = currentMesh.vertices[currentMesh.triangles[t + 1]];
             pC = currentMesh.vertices[currentMesh.triangles[t + 2]];
 
+            nA = currentMesh.normals[currentMesh.triangles[t]];
+            nB = currentMesh.normals[currentMesh.triangles[t + 1]];
+            nC = currentMesh.normals[currentMesh.triangles[t + 2]];
 
             if (plane.GetSide(pA) &&
                 plane.GetSide(pB) &&
                 plane.GetSide(pC)) {
 
                 AddTriangle(_vertices, _triangles, pA, pB, pC);
+                AddNormals(_normals, nA, nB, nC);
                 continue;
             }
 
@@ -225,6 +240,7 @@ public class MeshSlicing : MonoBehaviour
                         interAB,
                         interCA
                     );
+                    AddNormals(_normals, nA, nA, nA);
                 }
                 else {
                     //Triangle interAB B interAC
@@ -235,6 +251,8 @@ public class MeshSlicing : MonoBehaviour
                         pB,
                         interCA
                     );
+                    AddNormals(_normals, nB, nB, nB);
+
                     //Triangle interAC B C
                     AddTriangle(
                         _vertices,
@@ -243,6 +261,7 @@ public class MeshSlicing : MonoBehaviour
                         pB,
                         pC
                     );
+                    AddNormals(_normals, nB, nB, nC);
                 }
             }
             else if (isEdgeABIntersected && isEdgeBCIntersected) {
@@ -255,6 +274,7 @@ public class MeshSlicing : MonoBehaviour
                         interBC,
                         interAB
                     );
+                    AddNormals(_normals, nB, nB, nB);
                 }
                 else {
                     //Triangle A C interAB
@@ -265,6 +285,8 @@ public class MeshSlicing : MonoBehaviour
                         interAB,
                         pC
                     );
+                    AddNormals(_normals, nA, nA, nC);
+
                     //Triangle interBC C interAB
                     AddTriangle(
                         _vertices,
@@ -273,6 +295,7 @@ public class MeshSlicing : MonoBehaviour
                         pC,
                         interAB
                     );
+                    AddNormals(_normals, nC, nC, nC);
                 }
                 
             }
@@ -286,6 +309,7 @@ public class MeshSlicing : MonoBehaviour
                         interCA,
                         interBC
                     );
+                    AddNormals(_normals, nC, nC, nC);
                 }
                 else {
                     //Triangle interAC A B
@@ -296,6 +320,8 @@ public class MeshSlicing : MonoBehaviour
                         pA,
                         pB
                     );
+                    AddNormals(_normals, nA, nA, nB);
+
                     //Triangle B interBC interAC
                     AddTriangle(
                         _vertices,
@@ -304,16 +330,18 @@ public class MeshSlicing : MonoBehaviour
                         interBC,
                         interCA
                     );
+                    AddNormals(_normals, nB, nB, nB);
                 }
             }
         }
 
-        FillHoleCut(plane, _vertices, _triangles, intersectionVertices);
+        FillHoleCut(plane, _vertices, _triangles, _normals, intersectionVertices);
 
         return new PartMesh()
         {
             vertices = _vertices,
-            triangles = _triangles
+            triangles = _triangles,
+            normals = _normals
         };
     }
 

@@ -6,6 +6,7 @@ public class PartMesh
 {
     public List<Vector3> vertices = new List<Vector3>();
     public List<int> triangles = new List<int>();
+    public List<Vector3> normals = new List<Vector3>();
 
     GameObject gameObject;
 
@@ -20,7 +21,9 @@ public class PartMesh
         mesh.SetVertices(vertices);
         mesh.triangles = triangles.ToArray();
 
-        mesh.RecalculateNormals();
+        mesh.normals = normals.ToArray();
+
+        //mesh.RecalculateNormals();
         
 
         MeshFilter filter = gameObject.AddComponent<MeshFilter>();
