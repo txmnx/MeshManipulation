@@ -111,7 +111,7 @@ public class MeshSlicing : MonoBehaviour
         Array.Sort<PlanePoint>(points);
 
         //Avec cet algorithme le dernier point de la liste est le meme que le premier
-        PlanePoint[] hull = new PlanePoint[points.Length + 1];
+        PlanePoint[] hull = new PlanePoint[points.Length * 2];
 
         //La partie basse de l'enveloppe convexe
         for(int i = 0; i < points.Length; ++i) {
@@ -127,7 +127,7 @@ public class MeshSlicing : MonoBehaviour
             while (k >= t && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
                 k--;
             }
-
+            
             hull[k++] = points[i];
         }
 
