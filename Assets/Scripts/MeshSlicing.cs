@@ -66,7 +66,6 @@ public class MeshSlicing : MonoBehaviour
         
     }
 
-    /* TODO : trouver une solution plus rapide que de passer par un Raycast */
     bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out IntersectionVertex vertex)
     {
         Ray ray = new Ray();
@@ -119,13 +118,7 @@ public class MeshSlicing : MonoBehaviour
         uvs.Add(uv3);
     }
 
-    //TODO : Vector3 == Vector3 equivaut à (Vector3.SqrMagnitude(v1 - v2) < 1E-5f) avec Unity ; on peut plutot utiliser ça
-    bool EqualsVertexMargin(Vector3 v1, Vector3 v2)
-    {
-        return (Vector3.SqrMagnitude(v1 - v2) < 1E-6f);
-    }
-
-    bool ContainsVertexMargin(List<Vector3> vertices, Vector3 compareVertex)
+    bool IsVectorInList(List<Vector3> vertices, Vector3 compareVertex)
     {
         foreach (Vector3 vertex in vertices) {
             if (Vector3.SqrMagnitude(vertex - compareVertex) < 1E-6f) {
@@ -265,15 +258,15 @@ public class MeshSlicing : MonoBehaviour
 
 
             isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
-            if (isEdgeABIntersected && !ContainsVertexMargin(intersectionVertices, interAB.position)) intersectionVertices.Add(interAB.position);
+            if (isEdgeABIntersected && !IsVectorInList(intersectionVertices, interAB.position)) intersectionVertices.Add(interAB.position);
 
             isEdgeCAIntersected = GetIntersectionVertex(plane, pC, pA, out interCA);
-            if (isEdgeCAIntersected && !ContainsVertexMargin(intersectionVertices, interCA.position)) intersectionVertices.Add(interCA.position);
+            if (isEdgeCAIntersected && !IsVectorInList(intersectionVertices, interCA.position)) intersectionVertices.Add(interCA.position);
 
             isEdgeBCIntersected = GetIntersectionVertex(plane, pB, pC, out interBC);
-            if (isEdgeBCIntersected && !ContainsVertexMargin(intersectionVertices, interBC.position)) intersectionVertices.Add(interBC.position);
+            if (isEdgeBCIntersected && !IsVectorInList(intersectionVertices, interBC.position)) intersectionVertices.Add(interBC.position);
 
-            //TODO : il faut aussi gerer le cas ou un seul point est coupe par le plan
+            
             if (isEdgeABIntersected && isEdgeCAIntersected) {
                 //Triangle A interAB interAC
                 if (plane.GetSide(pA)) {
