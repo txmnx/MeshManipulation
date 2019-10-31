@@ -2,36 +2,30 @@
 using UnityEngine;
 
 
-struct TripleVector3
+struct Triple<T>
 {
-    public Vector3 a;
-    public Vector3 b;
-    public Vector3 c;
-}
-
-struct UV
-{
-    public Vector2 u;
-    public Vector2 v;
+    public T a;
+    public T b;
+    public T c;
 }
 
 
 class Triangle
 {
-    private readonly TripleVector3 _points;
-    private TripleVector3 _normals;
-    private UV _uv;
+    private readonly Triple<Vector3> _points;
+    private Triple<Vector3> _normals;
+    private Triple<Vector2> _uv;
 
     public Triangle(Vector3 pA, Vector3 pB, Vector3 pC)
     {
-        this._points = new TripleVector3 {
+        this._points = new Triple<Vector3> {
             a = pA,
             b = pB,
             c = pC
         };
 
-        this._normals = new TripleVector3();
-        this._uv = new UV();
+        this._normals = new Triple<Vector3>();
+        this._uv = new Triple<Vector2>();
     }
 
     public void SetNormals(Vector3 nA, Vector3 nB, Vector3 nC)
@@ -41,21 +35,22 @@ class Triangle
         this._normals.c = nC;
     }
 
-    public void SetUV(Vector2 u, Vector2 v)
+    public void SetUV(Vector2 uvA, Vector2 uvB, Vector2 uvC)
     {
-        this._uv.u = u;
-        this._uv.v = v;
+        this._uv.a = uvA;
+        this._uv.b = uvB;
+        this._uv.c = uvC;
     }
 
-    public TripleVector3 points {
+    public Triple<Vector3> points {
         get { return this._points; }
     }
 
-    public TripleVector3 normals {
+    public Triple<Vector3> normals {
         get { return this._normals; }
     }
 
-    public UV uv {
+    public Triple<Vector2> uv {
         get { return this._uv; }
     }
 }
