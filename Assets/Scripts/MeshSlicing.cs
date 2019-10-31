@@ -66,6 +66,11 @@ public class MeshSlicing : MonoBehaviour
         
     }
 
+
+    /**
+     * TODO : utiliser un Plane custom qui garde en memoire un point du point pour utiliser les equations de
+     * https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
+     */
     bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out IntersectionVertex vertex)
     {
         Ray ray = new Ray();
@@ -131,7 +136,9 @@ public class MeshSlicing : MonoBehaviour
 
     /**
      * Algorithme d'Andrew's Monotone Chain.
-     * Inspiré de https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain 
+     * Sources :
+     *      https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+     *      https://github.com/DavidArayan/ezy-slice
      */
     PlanePoint[] ConvexHull(PlanePoint[] points)
     {
@@ -255,6 +262,19 @@ public class MeshSlicing : MonoBehaviour
                 AddUVs(_uvs, uvA, uvB, uvC);
                 continue;
             }
+
+            /**
+             * TODO : tester si deux points sont sur le plan, dans ce cas il est inutile de tester les intersections
+             */
+
+            /**
+             * TODO : gérer le cas ou un point est exactement sur le plan
+             * Pour savoir si un point est sur le plan on a besoin d'un point du plan pour utiliser la formule
+             * https://math.stackexchange.com/questions/1330210/how-to-check-if-a-point-is-in-the-direction-of-the-normal-of-a-plane
+             * 
+             * Si un point A est exactement sur le plan alors on teste l'intersection B-C et on génère le triangle
+             * qui se trouve du bon côté du plan
+             */
 
 
             isEdgeABIntersected = GetIntersectionVertex(plane, pA, pB, out interAB);
