@@ -268,8 +268,8 @@ public class MeshSlicing : MonoBehaviour
                     AddNormals(
                         _normals,
                         nA,
-                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                        Vector3.Lerp(nA, nB, interAB.normalizedDistance),
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance)
                     );
                 }
                 else {
@@ -283,9 +283,9 @@ public class MeshSlicing : MonoBehaviour
                     );
                     AddNormals(
                         _normals,
-                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
+                        Vector3.Lerp(nA, nB, interAB.normalizedDistance),
                         nB,
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance)
                     );
 
                     //Triangle interAC B C
@@ -298,7 +298,7 @@ public class MeshSlicing : MonoBehaviour
                     );
                     AddNormals(
                         _normals,
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance),
                         nB,
                         nC
                     );
@@ -317,8 +317,8 @@ public class MeshSlicing : MonoBehaviour
                     AddNormals(
                         _normals,
                         nB,
-                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
-                        Vector3.Lerp(pA, pB, interAB.normalizedDistance)
+                        Vector3.Lerp(nB, nC, interBC.normalizedDistance),
+                        Vector3.Lerp(nA, nB, interAB.normalizedDistance)
                     );
                 }
                 else {
@@ -333,7 +333,7 @@ public class MeshSlicing : MonoBehaviour
                     AddNormals(
                         _normals,
                         nA,
-                        Vector3.Lerp(pA, pB, interAB.normalizedDistance),
+                        Vector3.Lerp(nA, nB, interAB.normalizedDistance),
                         nC
                     );
 
@@ -347,9 +347,9 @@ public class MeshSlicing : MonoBehaviour
                     );
                     AddNormals(
                         _normals,
-                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
+                        Vector3.Lerp(nB, nC, interBC.normalizedDistance),
                         nC,
-                        Vector3.Lerp(pA, pB, interAB.normalizedDistance)
+                        Vector3.Lerp(nA, nB, interAB.normalizedDistance)
                     );
                 }
                 
@@ -367,8 +367,8 @@ public class MeshSlicing : MonoBehaviour
                     AddNormals(
                         _normals,
                         nC,
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
-                        Vector3.Lerp(pB, pC, interBC.normalizedDistance)
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance),
+                        Vector3.Lerp(nB, nC, interBC.normalizedDistance)
                     );
                 }
                 else {
@@ -382,7 +382,7 @@ public class MeshSlicing : MonoBehaviour
                     );
                     AddNormals(
                         _normals,
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance),
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance),
                         nA,
                         nB
                     );
@@ -398,8 +398,8 @@ public class MeshSlicing : MonoBehaviour
                     AddNormals(
                         _normals,
                         nB,
-                        Vector3.Lerp(pB, pC, interBC.normalizedDistance),
-                        Vector3.Lerp(pC, pA, interCA.normalizedDistance)
+                        Vector3.Lerp(nB, nC, interBC.normalizedDistance),
+                        Vector3.Lerp(nC, nA, interCA.normalizedDistance)
                     );
                 }
             }
