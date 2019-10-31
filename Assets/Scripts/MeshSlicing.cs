@@ -71,29 +71,20 @@ public class MeshSlicing : MonoBehaviour
      * TODO : utiliser un Plane custom qui garde en memoire un point du point pour utiliser les equations de
      * https://en.wikipedia.org/wiki/Line%E2%80%93plane_intersection
      */
-    bool GetIntersectionVertex(Plane plane, Vector3 pointA, Vector3 pointB, out IntersectionVertex vertex)
+    bool GetIntersectionVertex(Plane plane, Vector3 pA, Vector3 pB, out IntersectionVertex vertex)
     {
-        Ray ray = new Ray();
-        ray.origin = pointA;
-        ray.direction = Vector3.Normalize(pointB - pointA);
+        float distance = 0.0f;
 
-        float _distance = 0.0f;
-
-        vertex = new IntersectionVertex
-        {
+        vertex = new IntersectionVertex {
             position = Vector3.zero,
-            normalizedDistance = _distance
+            normalizedDistance = distance
         };
 
-        if (plane.Raycast(ray, out _distance)) {
-            Vector3 point = ray.GetPoint(_distance);
-            float dotProduct = Vector3.Dot(pointB - pointA, point - pointA);
+        if (plane.Intersects(pA, pB, out distance)) {
+            vertex.position = pA + distance * (pB - pA);
+            vertex.normalizedDistance = distance;
 
-            if (dotProduct > 0 && dotProduct < Vector3.Distance(pointA, pointB)* Vector3.Distance(pointA, pointB)) {
-                vertex.position = point;
-                vertex.normalizedDistance = _distance / (pointB - pointA).magnitude;
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -126,7 +117,7 @@ public class MeshSlicing : MonoBehaviour
     bool IsVectorInList(List<Vector3> vertices, Vector3 compareVertex)
     {
         foreach (Vector3 vertex in vertices) {
-            if (Vector3.SqrMagnitude(vertex - compareVertex) < 1E-6f) {
+            if (Vector3.SqrMagnitude(vertex - compareVertex) < Utils.Epsilon) {
                 return true;
             }
         }
@@ -253,9 +244,9 @@ public class MeshSlicing : MonoBehaviour
             uvC = currentMesh.uv[currentMesh.triangles[t + 2]];
 
 
-            if (plane.GetSide(pA) &&
-                plane.GetSide(pB) &&
-                plane.GetSide(pC)) {
+            if (plane.GetSide(pA) == PlaneSide.UP &&
+                plane.GetSide(pB) == PlaneSide.UP &&
+                plane.GetSide(pC) == PlaneSide.UP) {
 
                 AddTriangle(_vertices, _triangles, pA, pB, pC);
                 AddNormals(_normals, nA, nB, nC);
@@ -290,7 +281,7 @@ public class MeshSlicing : MonoBehaviour
             
             if (isEdgeABIntersected && isEdgeCAIntersected) {
                 //Triangle A interAB interAC
-                if (plane.GetSide(pA)) {
+                if (plane.GetSide(pA) == PlaneSide.UP) {
                     AddTriangle(
                         _vertices,
                         _triangles,
@@ -356,7 +347,7 @@ public class MeshSlicing : MonoBehaviour
                 }
             }
             else if (isEdgeABIntersected && isEdgeBCIntersected) {
-                if (plane.GetSide(pB)) {
+                if (plane.GetSide(pB) == PlaneSide.UP) {
                     //Triangle B interBC interAB
                     AddTriangle(
                         _vertices,
@@ -424,7 +415,7 @@ public class MeshSlicing : MonoBehaviour
                 
             }
             else if (isEdgeCAIntersected && isEdgeBCIntersected) {
-                if (plane.GetSide(pC)) {
+                if (plane.GetSide(pC) == PlaneSide.UP) {
                     //Triangle C interAC interBC
                     AddTriangle(
                         _vertices,
@@ -494,8 +485,7 @@ public class MeshSlicing : MonoBehaviour
 
         FillHoleCut(plane, _vertices, _triangles, _normals, _uvs, intersectionVertices);
 
-        return new PartMesh()
-        {
+        return new PartMesh() {
             vertices = _vertices,
             triangles = _triangles,
             normals = _normals,

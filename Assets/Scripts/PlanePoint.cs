@@ -22,10 +22,9 @@ class PlanePoint : IComparable<PlanePoint>
 
     public static bool IsAngleClockWise(PlanePoint o, PlanePoint a, PlanePoint b)
     {
-        float epsilon = -1E-6f;
         float crossResult = Cross(o, a, b);
 
-        return (crossResult < epsilon);
+        return (crossResult < Utils.Epsilon);
     }
 
     public int CompareTo(PlanePoint p)
