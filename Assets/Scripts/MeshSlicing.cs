@@ -10,6 +10,7 @@ using System;
  *      + D'abord optimiser les segments de code qui peuvent l'être (intersection point / plan ...)
  *      + Factoriser ce gros script de 500 LIGNES en plusieurs classes, ne plus passer des vertices[], triangles[], etc...
  *        en paramètre des méthodes
+ *      + Bien commenter chaque méthode
  *      + Le but est d'avoir à la fin une classe MeshSlicer avec :
  *          - une méthode Slice() qui retourne les deux mesh résultant de la coupe
  *          - et deux autres méthodes SliceLeft() et SliceRight() qui ne calculent que la mesh correspondante
