@@ -265,6 +265,7 @@ public class MeshSlicing : MonoBehaviour
 
             /**
              * TODO : tester si deux points sont sur le plan, dans ce cas il est inutile de tester les intersections
+             * Si le triangle est du bon côté du plan alors on le génère
              */
 
             /**
