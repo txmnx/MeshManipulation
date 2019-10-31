@@ -493,6 +493,10 @@ public class MeshSlicing : MonoBehaviour
         };
     }
 
+
+    /**
+     * DEBUG
+     */
     void OnDrawGizmos()
     {
         Gizmos.color = new Color(1, 1, 1, 0.3f);

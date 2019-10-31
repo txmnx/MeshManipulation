@@ -1,7 +1,8 @@
 ﻿using System;
 using UnityEngine;
 
-public enum PlaneSide {
+public enum PlaneSide
+{
     UP,
     DOWN,
     ON
