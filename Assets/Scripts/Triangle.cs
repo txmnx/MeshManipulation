@@ -14,7 +14,7 @@ class Triangle
 {
     private readonly Triple<Vector3> _points;
     private Triple<Vector3> _normals;
-    private Triple<Vector2> _uv;
+    private Triple<Vector2> _uvs;
 
     public Triangle(Vector3 pA, Vector3 pB, Vector3 pC)
     {
@@ -25,7 +25,7 @@ class Triangle
         };
 
         this._normals = new Triple<Vector3>();
-        this._uv = new Triple<Vector2>();
+        this._uvs = new Triple<Vector2>();
     }
 
     public void SetNormals(Vector3 nA, Vector3 nB, Vector3 nC)
@@ -35,11 +35,11 @@ class Triangle
         this._normals.c = nC;
     }
 
-    public void SetUV(Vector2 uvA, Vector2 uvB, Vector2 uvC)
+    public void SetUVs(Vector2 uvA, Vector2 uvB, Vector2 uvC)
     {
-        this._uv.a = uvA;
-        this._uv.b = uvB;
-        this._uv.c = uvC;
+        this._uvs.a = uvA;
+        this._uvs.b = uvB;
+        this._uvs.c = uvC;
     }
 
     public Triple<Vector3> points {
@@ -51,6 +51,6 @@ class Triangle
     }
 
     public Triple<Vector2> uv {
-        get { return this._uv; }
+        get { return this._uvs; }
     }
 }

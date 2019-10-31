@@ -251,6 +251,7 @@ public class MeshSlicing : MonoBehaviour
                 AddTriangle(_vertices, _triangles, pA, pB, pC);
                 AddNormals(_normals, nA, nB, nC);
                 AddUVs(_uvs, uvA, uvB, uvC);
+
                 continue;
             }
 
