@@ -144,10 +144,27 @@ class MeshSlicer
             // At this point the triangle has exactly two intersection points with the plane
             // So we have to generate 3 new triangles
 
-            if (intersectsAB = _plane.Intersects(pA, pB, out coeffAB)) _cut.Add(Vector3.Lerp(pA, pB, coeffAB));
-            if (intersectsBC = _plane.Intersects(pB, pC, out coeffBC)) _cut.Add(Vector3.Lerp(pB, pC, coeffBC));
-            if (intersectsCA = _plane.Intersects(pC, pA, out coeffCA)) _cut.Add(Vector3.Lerp(pC, pA, coeffCA));
+            // First we check where these intersections are and we store them
+            intersectsAB = _plane.Intersects(pA, pB, out coeffAB);
+            intersectsBC = _plane.Intersects(pB, pC, out coeffBC);
+            intersectsCA = _plane.Intersects(pC, pA, out coeffCA);
+            if (intersectsAB) _cut.Add(Vector3.Lerp(pA, pB, coeffAB));
+            if (intersectsBC) _cut.Add(Vector3.Lerp(pB, pC, coeffBC));
+            if (intersectsCA) _cut.Add(Vector3.Lerp(pC, pA, coeffCA));
+
+            // Then we build the new triangles according to these points
+            if (intersectsAB && intersectsCA) {
+                TriangleSliceWithTwoIntersections(pA, pB, pC, nA, nB, nC, uvA, uvB, uvC, coeffAB, coeffCA, planeSideA);
+            }
+            else if (intersectsBC && intersectsAB) {
+                TriangleSliceWithTwoIntersections(pB, pC, pA, nB, nC, nA, uvB, uvC, uvA, coeffBC, coeffAB, planeSideB);
+            }
+            else if (intersectsBC && intersectsCA) {
+                TriangleSliceWithTwoIntersections(pC, pA, pB, nC, nA, nB, uvC, uvA, uvB, coeffBC, coeffCA, planeSideC);
+            }
         }
+
+        // TODO : here we've gone through each triangle, now we have to fill the cut face
     }
 
     /**
@@ -194,6 +211,45 @@ class MeshSlicer
             else {
                 _lowerMesh.Add(newTriangle);
             }
+        }
+    }
+
+
+    /**
+     * Compute the three new triangles when the plane intersects with the triangle on two points.
+     * Here the intersection points are AB and CA.
+     * It avoids to duplicate code.
+     */
+    private void TriangleSliceWithTwoIntersections(Vector3 pA, Vector3 pB, Vector3 pC, Vector3 nA, Vector3 nB, Vector3 nC, Vector2 uvA, Vector2 uvB, Vector2 uvC, float coeffAB, float coeffCA, PlaneSide planeSideA)
+    {
+        Vector3 pAB = Vector3.Lerp(pA, pB, coeffAB);
+        Vector3 pCA = Vector3.Lerp(pC, pA, coeffCA);
+        Vector3 nAB = Vector3.Lerp(nA, nB, coeffAB);
+        Vector3 nCA = Vector3.Lerp(nC, nA, coeffCA);
+        Vector2 uvAB = Vector2.Lerp(uvA, uvB, coeffAB);
+        Vector2 uvCA = Vector2.Lerp(uvC, uvA, coeffCA);
+
+        Triangle triangle_A_AB_CA = new Triangle(pA, pAB, pCA);
+        triangle_A_AB_CA.SetNormals(nA, nAB, nCA);
+        triangle_A_AB_CA.SetUVs(uvA, uvAB, uvCA);
+
+        Triangle triangle_B_CA_AB = new Triangle(pB, pCA, pAB);
+        triangle_B_CA_AB.SetNormals(nB, nCA, nAB);
+        triangle_B_CA_AB.SetUVs(uvB, uvCA, uvAB);
+
+        Triangle triangle_C_CA_B = new Triangle(pC, pCA, pC);
+        triangle_C_CA_B.SetNormals(nC, nCA, nB);
+        triangle_C_CA_B.SetUVs(uvC, uvCA, uvB);
+
+        if (planeSideA == PlaneSide.UP) {
+            _upperMesh.Add(triangle_A_AB_CA);
+            _lowerMesh.Add(triangle_B_CA_AB);
+            _lowerMesh.Add(triangle_C_CA_B);
+        }
+        else {
+            _upperMesh.Add(triangle_B_CA_AB);
+            _upperMesh.Add(triangle_C_CA_B);
+            _lowerMesh.Add(triangle_A_AB_CA);
         }
     }
 
