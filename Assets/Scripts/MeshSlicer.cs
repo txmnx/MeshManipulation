@@ -18,6 +18,9 @@ class MeshSlicer
     private List<Triangle> _upperMesh;
     private List<Triangle> _lowerMesh;
 
+    // Contain the points of intersection between the plane and the mesh
+    private HashSet<Vector3> _cut;
+
 
     /**
      * When a MeshSlicer is instanciated it cuts its stored mesh with its cutting plane and compute one set of triangle 
@@ -32,6 +35,8 @@ class MeshSlicer
         _upperMesh = new List<Triangle>();
         _lowerMesh = new List<Triangle>();
 
+        _cut = new HashSet<Vector3>(new Utils.Vector3EpsilonComparer());
+
         Slice();
     }
 
@@ -44,6 +49,11 @@ class MeshSlicer
         Vector3 pA, pB, pC;
         Vector3 nA, nB, nC;
         Vector2 uvA, uvB, uvC;
+
+        PlaneSide planeSideA, planeSideB, planeSideC;
+
+        bool intersectsAB, intersectsBC, intersectsCA;
+        float coeffAB, coeffBC, coeffCA;
 
         // We go through each triangles of the mesh
         for (int t = 0; t < _mesh.triangles.Length; t += 3) {
@@ -60,9 +70,9 @@ class MeshSlicer
             uvB = _mesh.uv[_mesh.triangles[t + 1]];
             uvC = _mesh.uv[_mesh.triangles[t + 2]];
 
-            PlaneSide planeSideA = _plane.GetSide(pA);
-            PlaneSide planeSideB = _plane.GetSide(pB);
-            PlaneSide planeSideC = _plane.GetSide(pC);
+            planeSideA = _plane.GetSide(pA);
+            planeSideB = _plane.GetSide(pB);
+            planeSideC = _plane.GetSide(pC);
 
             Triangle currentTriangle = new Triangle(pA, pB, pC);
             currentTriangle.SetNormals(nA, nB, nC);
@@ -130,7 +140,13 @@ class MeshSlicer
                 continue;
             }
 
-            // TODO : 3 triangles generations
+
+            // At this point the triangle has exactly two intersection points with the plane
+            // So we have to generate 3 new triangles
+
+            if (intersectsAB = _plane.Intersects(pA, pB, out coeffAB)) _cut.Add(Vector3.Lerp(pA, pB, coeffAB));
+            if (intersectsBC = _plane.Intersects(pB, pC, out coeffBC)) _cut.Add(Vector3.Lerp(pB, pC, coeffBC));
+            if (intersectsCA = _plane.Intersects(pC, pA, out coeffCA)) _cut.Add(Vector3.Lerp(pC, pA, coeffCA));
         }
     }
 
@@ -163,6 +179,8 @@ class MeshSlicer
                 _upperMesh.Add(newTriangleC);
                 _lowerMesh.Add(newTriangleB);
             }
+
+            _cut.Add(pBC);
         }
         else {
             // If there isn't any intersection then we can push the whole triangle into whether the upper or the lower mesh
