@@ -35,6 +35,8 @@ public class Plane
     }
 
     /**
+     * Return if segment [pA, pB] intersects with the plane
+     * The interpolation coefficient of the intersection point is stored in distance
      * Source : https://en.wikipedia.org/wiki/Line-plane_intersection
      */
     public bool Intersects(Vector3 pA, Vector3 pB, out float distance)
@@ -42,9 +44,6 @@ public class Plane
         distance = Vector3.Dot((this._position - pA), this._normal) / Vector3.Dot((pB - pA), this._normal);
 
         if (distance >= -Utils.Epsilon && distance <= (1 + Utils.Epsilon)) {
-            //distance est le coefficient qu'on peut utiliser pour interpoler la position de l'intersection
-            //si il y a intersection alors il est forcement compris entre 0 et 1
-
             return true;
         }
 

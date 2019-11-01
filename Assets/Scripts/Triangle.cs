@@ -50,7 +50,7 @@ class Triangle
         get { return this._normals; }
     }
 
-    public Triple<Vector2> uv {
+    public Triple<Vector2> uvs {
         get { return this._uvs; }
     }
 }
