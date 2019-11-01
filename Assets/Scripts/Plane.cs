@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
+
 public enum PlaneSide
 {
     UP,
@@ -8,6 +9,11 @@ public enum PlaneSide
     ON
 }
 
+/**
+ * Plane representation.
+ * Store one of its points as the 'position' property as well as its normal vector.
+ * The 'position' property is useful for intersection computations and knowing on which side of the plane a point is.
+ */
 public class Plane
 {
     private Vector3 _position;
@@ -19,6 +25,10 @@ public class Plane
         this._normal = Vector3.Cross(p1, p2).normalized;
     }
 
+    /**
+     * Tell whether the point is on the plane, on the upper side of the plane or on the lower side of the plane.
+     * Source : https://math.stackexchange.com/questions/1330210/how-to-check-if-a-point-is-in-the-direction-of-the-normal-of-a-plane
+     */
     public PlaneSide GetSide(Vector3 point)
     {
         float side = Vector3.Dot((point - this._position), this._normal);
@@ -35,8 +45,8 @@ public class Plane
     }
 
     /**
-     * Return if segment [pA, pB] intersects with the plane
-     * The interpolation coefficient of the intersection point is stored in distance
+     * Returns true if the segment [pA, pB] intersects with the plane.
+     * The interpolation coefficient of the intersection point is stored in 'distance'.
      * Source : https://en.wikipedia.org/wiki/Line-plane_intersection
      */
     public bool Intersects(Vector3 pA, Vector3 pB, out float distance)

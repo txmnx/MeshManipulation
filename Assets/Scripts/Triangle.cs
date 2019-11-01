@@ -2,6 +2,7 @@
 using UnityEngine;
 
 
+
 struct Triple<T>
 {
     public T a;
@@ -9,7 +10,9 @@ struct Triple<T>
     public T c;
 }
 
-
+/**
+ * 3D triangle representation, with normals and uvs values for each of its 3 points
+ */
 class Triangle
 {
     private readonly Triple<Vector3> _points;
