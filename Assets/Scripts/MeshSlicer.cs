@@ -3,48 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-
+/**
+ * Slice a mesh with a plane.
+ * How to use MeshSlicer :
+ *      - instanciate a MeshSlicer with the mesh and the cutting plane as parameters
+ *      - apply the Slice() method
+ *      - if Slice() returns true then the two new meshes are accessible as the upperMesh and lowerMesh properties
+ */
 class MeshSlicer
 {
-    struct IntersectionPoint
-    {
-        public Vector3 position;
-        public float distance;
-    }
-
     private readonly Mesh _mesh;
     private readonly Plane _plane;
 
     private List<Triangle> _upperMesh;
     private List<Triangle> _lowerMesh;
 
-    // Contain the points of intersection between the plane and the mesh
     private HashSet<Vector3> _cut;
 
 
-    /**
-     * When a MeshSlicer is instanciated it cuts its stored mesh with its cutting plane and compute one set of triangle 
-     * for each of the two new meshes.
-     * The two generated list of triangles are accessible as the upperMesh and lowerMesh properties.
-     */
     public MeshSlicer(Mesh mesh, Plane plane)
     {
         this._mesh = mesh;
         this._plane = plane;
 
-        _upperMesh = new List<Triangle>();
-        _lowerMesh = new List<Triangle>();
+        this._upperMesh = new List<Triangle>();
+        this._lowerMesh = new List<Triangle>();
 
-        _cut = new HashSet<Vector3>(new Utils.Vector3EpsilonComparer());
-
-        Slice();
+        this._cut = new HashSet<Vector3>(new Utils.Vector3EpsilonComparer());
     }
 
 
     /**
      * Slice the mesh with the cutting plane stored.
+     * The two new meshes are stored as two generated list of triangles, they are accessible as the upperMesh and lowerMesh properties.
+     * Return true if the slice was successfull.
      */
-    private void Slice()
+    public bool Slice()
     {
         Vector3 pA, pB, pC;
         Vector3 nA, nB, nC;
@@ -90,8 +84,9 @@ class MeshSlicer
                     continue;
                 }
                 else {
-                    // TODO : here the triangle is on the plane, maybe we can store it in a list which at the end is put
-                    // in the lower or upper mesh depending on which side the other triangles are
+                    // If we got here then there is at least one triangle which lies exactly on the plane so we can't slice the mesh
+                    Clear();
+                    return false;
                 }
             }
             // From now on we check if two points are exactly on the plane ; if yes we don't have to deal with intersections
@@ -140,7 +135,6 @@ class MeshSlicer
                 continue;
             }
 
-
             // At this point the triangle has exactly two intersection points with the plane
             // So we have to generate 3 new triangles
 
@@ -151,6 +145,12 @@ class MeshSlicer
             if (intersectsAB) _cut.Add(Vector3.Lerp(pA, pB, coeffAB));
             if (intersectsBC) _cut.Add(Vector3.Lerp(pB, pC, coeffBC));
             if (intersectsCA) _cut.Add(Vector3.Lerp(pC, pA, coeffCA));
+
+            // If there aren't enough points to properly slice a convex mesh then we can't slice this mesh
+            if (_cut.Count >= 3) {
+                Clear();
+                return false;
+            }
 
             // Then we build the new triangles according to these points
             if (intersectsAB && intersectsCA) {
@@ -164,8 +164,40 @@ class MeshSlicer
             }
         }
 
-        // TODO : here we've gone through each triangle, now we have to fill the cut face
+        // We've gone through each triangle, now we have to fill the cut face
+        // First we map the points of the cut onto a 2D plane to simplify the computations
+        Vector3 u = Vector3.Cross(_plane.normal, Vector3.up).normalized;
+        if (u == Vector3.zero) {
+            u = Vector3.Cross(_plane.normal, Vector3.forward).normalized;
+        }
+        Vector3 v = Vector3.Cross(_plane.normal, u);
+
+        PlanePoint[] faceCut = new PlanePoint[_cut.Count];
+        int faceCutIndex = 0;
+        foreach (Vector3 cutPoint in _cut) {
+            faceCut[faceCutIndex] = new PlanePoint(cutPoint, u, v);
+        }
+
+        // Then we compute the convex hull in order to sort this set of 2D points in clockwise order
+        PlanePoint[] convexHull = ConvexHull(faceCut);
+
+        // So that we can use this trivial triangulation to fill the face
+        for (int i = 2; i < convexHull.Length; ++i) {
+            Triangle upperMeshTriangle = new Triangle(convexHull[0].worldCoords, convexHull[i].worldCoords, convexHull[i - 1].worldCoords);
+            upperMeshTriangle.SetNormals(_plane.normal, _plane.normal, _plane.normal);
+            upperMeshTriangle.SetUVs(Vector2.zero, Vector2.zero, Vector2.zero);
+
+            Triangle lowerMeshTriangle = new Triangle(convexHull[0].worldCoords, convexHull[i - 1].worldCoords, convexHull[i].worldCoords);
+            lowerMeshTriangle.SetNormals(-_plane.normal, -_plane.normal, -_plane.normal);
+            lowerMeshTriangle.SetUVs(Vector2.zero, Vector2.zero, Vector2.zero);
+
+            _upperMesh.Add(upperMeshTriangle);
+            _lowerMesh.Add(lowerMeshTriangle);
+        }
+
+        return true;
     }
+
 
     /**
      * Compute the two new triangles when only one point is on the plane.
@@ -251,6 +283,58 @@ class MeshSlicer
             _upperMesh.Add(triangle_C_CA_B);
             _lowerMesh.Add(triangle_A_AB_CA);
         }
+    }
+
+
+    /**
+     * Compute the convex hull of set of 2D points as an array of points in a clockwise order.
+     * Andrew's Monoton Chain algorithm.
+     * Sources :
+     *      https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain
+     *      https://github.com/DavidArayan/ezy-slice
+     */
+    PlanePoint[] ConvexHull(PlanePoint[] points)
+    {
+        if (points.Length < 3) return points;
+
+        int k = 0;
+        Array.Sort<PlanePoint>(points);
+
+        PlanePoint[] hull = new PlanePoint[points.Length * 2];
+
+        // The lower hull
+        for (int i = 0; i < points.Length; ++i) {
+            while (k >= 2 && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
+                k--;
+            }
+
+            hull[k++] = points[i];
+        }
+
+        //The upper hull
+        for (int i = points.Length - 2, t = k + 1; i >= 0; --i) {
+            while (k >= t && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
+                k--;
+            }
+
+            hull[k++] = points[i];
+        }
+
+        // With this algorithm the last stored point is the same as the first one so we remove it
+        PlanePoint[] convexHull = new PlanePoint[k - 1];
+        for (int i = 0; i < k - 1; ++i) {
+            convexHull[i] = hull[i];
+        }
+
+        return convexHull;
+    }
+
+
+    private void Clear()
+    {
+        _upperMesh.Clear();
+        _lowerMesh.Clear();
+        _cut.Clear();
     }
 
 

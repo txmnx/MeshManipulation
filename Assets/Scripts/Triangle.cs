@@ -11,7 +11,7 @@ struct Triple<T>
 }
 
 /**
- * 3D triangle representation, with normals and uvs values for each of its 3 points
+ * 3D triangle representation, with normals and uvs values for each of its 3 points.
  */
 class Triangle
 {
