@@ -5,7 +5,7 @@ using UnityEngine;
 /**
  * Utility class to use MeshSlicer in Unity.
  */
-static class MeshSlicerUtility
+public static class MeshSlicerUtility
 {
     /**
      * Slice a GameObject with a plane and return the two new GameObject.
@@ -32,8 +32,8 @@ static class MeshSlicerUtility
                 if (originalMeshRenderer) {
                     MeshRenderer upperMeshRenderer = upperPart.AddComponent<MeshRenderer>();
                     MeshRenderer lowerMeshRenderer = lowerPart.AddComponent<MeshRenderer>();
-                    upperMeshRenderer.materials = originalMeshRenderer.materials;
-                    lowerMeshRenderer.materials = originalMeshRenderer.materials;
+                    upperMeshRenderer.materials = originalMeshRenderer.sharedMaterials;
+                    lowerMeshRenderer.materials = originalMeshRenderer.sharedMaterials;
                 }
 
                 slicedParts.Add(upperPart);

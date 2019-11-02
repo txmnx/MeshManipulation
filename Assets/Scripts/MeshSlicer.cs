@@ -152,12 +152,6 @@ class MeshSlicer
             if (intersectsBC) _cut.Add(Vector3.Lerp(pB, pC, coeffBC));
             if (intersectsCA) _cut.Add(Vector3.Lerp(pC, pA, coeffCA));
 
-            // If there aren't enough points to properly slice a convex mesh then we can't slice this mesh
-            if (_cut.Count >= 3) {
-                Clear();
-                return false;
-            }
-
             // Then we build the new triangles according to these points
             if (intersectsAB && intersectsCA) {
                 TriangleSliceWithTwoIntersections(pA, pB, pC, nA, nB, nC, uvA, uvB, uvC, coeffAB, coeffCA, planeSideA);
@@ -168,6 +162,12 @@ class MeshSlicer
             else if (intersectsBC && intersectsCA) {
                 TriangleSliceWithTwoIntersections(pC, pA, pB, nC, nA, nB, uvC, uvA, uvB, coeffBC, coeffCA, planeSideC);
             }
+        }
+
+        // If there aren't enough points to properly slice a convex mesh then we can't slice this mesh
+        if (_cut.Count < 3) {
+            Clear();
+            return false;
         }
 
         // We've gone through each triangle, now we have to fill the cut face
@@ -181,7 +181,7 @@ class MeshSlicer
         PlanePoint[] faceCut = new PlanePoint[_cut.Count];
         int faceCutIndex = 0;
         foreach (Vector3 cutPoint in _cut) {
-            faceCut[faceCutIndex] = new PlanePoint(cutPoint, u, v);
+            faceCut[faceCutIndex++] = new PlanePoint(cutPoint, u, v);
         }
 
         // Then we compute the convex hull in order to sort this set of 2D points in clockwise order
@@ -190,11 +190,11 @@ class MeshSlicer
         // So that we can use this trivial triangulation to fill the face
         for (int i = 2; i < convexHull.Length; ++i) {
             Triangle upperMeshTriangle = new Triangle(convexHull[0].worldCoords, convexHull[i].worldCoords, convexHull[i - 1].worldCoords);
-            upperMeshTriangle.SetNormals(_plane.normal, _plane.normal, _plane.normal);
+            upperMeshTriangle.SetNormals(-_plane.normal, -_plane.normal, -_plane.normal);
             upperMeshTriangle.SetUVs(Vector2.zero, Vector2.zero, Vector2.zero);
 
             Triangle lowerMeshTriangle = new Triangle(convexHull[0].worldCoords, convexHull[i - 1].worldCoords, convexHull[i].worldCoords);
-            lowerMeshTriangle.SetNormals(-_plane.normal, -_plane.normal, -_plane.normal);
+            lowerMeshTriangle.SetNormals(_plane.normal, _plane.normal, _plane.normal);
             lowerMeshTriangle.SetUVs(Vector2.zero, Vector2.zero, Vector2.zero);
 
             _upperMesh.Add(upperMeshTriangle);
@@ -360,29 +360,36 @@ class MeshSlicer
         Mesh mesh = new Mesh();
         mesh.name = this._mesh.name + (isUpperMesh ? "_1" : "_0");
 
-        int[] triangles = new int[meshToGenerate.Count * 3];
-        Vector3[] vertices = new Vector3[meshToGenerate.Count * 3];
-        Vector3[] normals = new Vector3[meshToGenerate.Count * 3];
-        Vector2[] uvs = new Vector2[meshToGenerate.Count * 3];
+        int[] _triangles = new int[meshToGenerate.Count * 3];
+        Vector3[] _vertices = new Vector3[meshToGenerate.Count * 3];
+        Vector3[] _normals = new Vector3[meshToGenerate.Count * 3];
+        Vector2[] _uvs = new Vector2[meshToGenerate.Count * 3];
 
         int index = 0;
         foreach (Triangle triangle in meshToGenerate) {
-            vertices[index] = triangle.points.a;
-            vertices[index + 1] = triangle.points.b;
-            vertices[index + 2] = triangle.points.c;
+            _vertices[index] = triangle.points.a;
+            _vertices[index + 1] = triangle.points.b;
+            _vertices[index + 2] = triangle.points.c;
 
-            normals[index] = triangle.normals.a;
-            normals[index + 1] = triangle.normals.b;
-            normals[index + 2] = triangle.normals.c;
+            _normals[index] = triangle.normals.a;
+            _normals[index + 1] = triangle.normals.b;
+            _normals[index + 2] = triangle.normals.c;
 
-            uvs[index] = triangle.uvs.a;
-            uvs[index + 1] = triangle.uvs.b;
-            uvs[index + 2] = triangle.uvs.c;
+            _uvs[index] = triangle.uvs.a;
+            _uvs[index + 1] = triangle.uvs.b;
+            _uvs[index + 2] = triangle.uvs.c;
 
-            triangles[index] = index;
-            triangles[index + 1] = index + 1;
-            triangles[index + 2] = index + 2;
+            _triangles[index] = index;
+            _triangles[index + 1] = index + 1;
+            _triangles[index + 2] = index + 2;
+
+            index += 3;
         }
+
+        mesh.vertices = _vertices;
+        mesh.triangles = _triangles;
+        mesh.normals = _normals;
+        mesh.uv = _uvs;
 
         return mesh;
     }
