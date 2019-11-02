@@ -20,6 +20,9 @@ class MeshSlicer
 
     private HashSet<Vector3> _cut;
 
+    private Mesh _cachedUpperMesh;
+    private Mesh _cachedLowerMesh;
+
 
     public MeshSlicer(Mesh mesh, Plane plane)
     {
@@ -30,6 +33,9 @@ class MeshSlicer
         this._lowerMesh = new List<Triangle>();
 
         this._cut = new HashSet<Vector3>(new Utils.Vector3EpsilonComparer());
+
+        this._cachedUpperMesh = null;
+        this._cachedLowerMesh = null;
     }
 
 
@@ -330,22 +336,76 @@ class MeshSlicer
     }
 
 
+    /**
+     * Clear all of the stored buffers.
+     */
     private void Clear()
     {
         _upperMesh.Clear();
         _lowerMesh.Clear();
         _cut.Clear();
+
+        _cachedUpperMesh = null;
+        _cachedLowerMesh = null;
+    }
+
+
+    /**
+     * Generate the lower or upper mesh with the triangle list stored.
+     */
+    private Mesh GenerateMesh(bool isUpperMesh)
+    {
+        List<Triangle> meshToGenerate = (isUpperMesh ? _upperMesh : _lowerMesh);
+        
+        Mesh mesh = new Mesh();
+        mesh.name = this._mesh.name + (isUpperMesh ? "_1" : "_0");
+
+        int[] triangles = new int[meshToGenerate.Count * 3];
+        Vector3[] vertices = new Vector3[meshToGenerate.Count * 3];
+        Vector3[] normals = new Vector3[meshToGenerate.Count * 3];
+        Vector2[] uvs = new Vector2[meshToGenerate.Count * 3];
+
+        int index = 0;
+        foreach (Triangle triangle in meshToGenerate) {
+            vertices[index] = triangle.points.a;
+            vertices[index + 1] = triangle.points.b;
+            vertices[index + 2] = triangle.points.c;
+
+            normals[index] = triangle.normals.a;
+            normals[index + 1] = triangle.normals.b;
+            normals[index + 2] = triangle.normals.c;
+
+            uvs[index] = triangle.uvs.a;
+            uvs[index + 1] = triangle.uvs.b;
+            uvs[index + 2] = triangle.uvs.c;
+
+            triangles[index] = index;
+            triangles[index + 1] = index + 1;
+            triangles[index + 2] = index + 2;
+        }
+
+        return mesh;
     }
 
 
     /**
      * Getters
      */
-    public List<Triangle> upperMesh {
-        get { return _upperMesh; }
+    public Mesh upperMesh {
+        get {
+            if (_cachedUpperMesh == null) {
+                _cachedUpperMesh = GenerateMesh(true);
+            }
+            return _cachedUpperMesh;
+        }
     }
 
-    public List<Triangle> lowerMesh {
-        get { return _lowerMesh; }
+    public Mesh lowerMesh {
+        get {
+            if (_cachedLowerMesh == null) {
+                _cachedLowerMesh = GenerateMesh(false);
+            }
+            return _cachedLowerMesh;
+        }
     }
 }
