@@ -275,7 +275,7 @@ class MeshSlicer
         triangle_B_CA_AB.SetNormals(nB, nCA, nAB);
         triangle_B_CA_AB.SetUVs(uvB, uvCA, uvAB);
 
-        Triangle triangle_C_CA_B = new Triangle(pC, pCA, pC);
+        Triangle triangle_C_CA_B = new Triangle(pC, pCA, pB);
         triangle_C_CA_B.SetNormals(nC, nCA, nB);
         triangle_C_CA_B.SetUVs(uvC, uvCA, uvB);
 
