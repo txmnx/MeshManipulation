@@ -20,15 +20,15 @@ public class MeshSlicingEditor : Editor
         if (mesh != null) {
             if (mesh.isCloned) {
                 if (GUILayout.Button("Slice mesh")) {
-                    mesh.SliceMesh();
+                    //mesh.SliceMesh();
 
-                    //Plane cuttingPlane = new Plane(
-                    //    mesh.planeVertices[0],
-                    //    mesh.planeVertices[1],
-                    //    mesh.planeVertices[2]
-                    //);
+                    Plane cuttingPlane = new Plane(
+                        mesh.planeVertices[0],
+                        mesh.planeVertices[1],
+                        mesh.planeVertices[2]
+                    );
 
-                    //MeshSlicerUtility.Slice(mesh.gameObject, cuttingPlane);
+                    MeshSlicerUtility.Slice(mesh.gameObject, cuttingPlane);
                 }
             }
         }

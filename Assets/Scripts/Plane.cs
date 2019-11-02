@@ -22,7 +22,7 @@ public class Plane
     public Plane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
         this._position = p1;
-        this._normal = Vector3.Cross(p1, p2).normalized;
+        this._normal = Vector3.Cross((p2 - p1), (p3 - p1)).normalized;
     }
 
     /**
