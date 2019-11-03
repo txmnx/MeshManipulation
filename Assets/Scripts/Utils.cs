@@ -4,7 +4,7 @@ using UnityEngine;
 
 static class Utils
 {
-    public static float Epsilon = 1E-6f;
+    public static float Epsilon = float.Epsilon;
 
     public class Vector3EpsilonComparer : IEqualityComparer<Vector3>
     {

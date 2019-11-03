@@ -51,7 +51,8 @@ public class Plane
      */
     public bool Intersects(Vector3 pA, Vector3 pB, out float distance)
     {
-        distance = Vector3.Dot((this._position - pA), this._normal) / Vector3.Dot((pB - pA), this._normal);
+        float dot = Vector3.Dot((this._position - pA), this._normal);
+        distance = dot / Vector3.Dot((pB - pA), this._normal);
 
         if (distance >= -Utils.Epsilon && distance <= (1 + Utils.Epsilon)) {
             return true;
