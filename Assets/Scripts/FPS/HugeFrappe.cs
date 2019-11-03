@@ -5,16 +5,18 @@ using UnityEngine;
 
 public class HugeFrappe : MonoBehaviour
 {
-    private Animator animator;
+    public Animator cameraAnimator;
+    private Animator armAnimator;
 
     public void Start()
     {
-        animator = GetComponent<Animator>();
+        armAnimator = GetComponent<Animator>();
     }
     public void Update()
     {
-        if (Input.GetButton("Fire1")) {
-            animator.Play("huge frappe");
+        if (Input.GetButtonDown("Fire1")) {
+            armAnimator.Play("huge frappe", 0, 0.0f);
+            cameraAnimator.Play("camera_hit", 0, 0.0f);
         }
     }
 }
