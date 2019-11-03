@@ -3,29 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(MeshSlicing))]
-public class MeshSlicingEditor : Editor
+[CustomEditor(typeof(CuttingPlane))]
+public class SliceEditor : Editor
 {
-    MeshSlicing mesh;
+    CuttingPlane cuttingPlane;
 
     void OnSceneGUI()
     {
-        mesh = target as MeshSlicing;
+        cuttingPlane = target as CuttingPlane;
     }
 
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
 
-        if (mesh != null) {
+        if (cuttingPlane != null) {
             if (GUILayout.Button("Slice mesh")) {
-                Plane cuttingPlane = new Plane(
-                    mesh.planeVertices[0],
-                    mesh.planeVertices[1],
-                    mesh.planeVertices[2]
+                Plane plane = new Plane(
+                    cuttingPlane.planeVertices[0],
+                    cuttingPlane.planeVertices[1],
+                    cuttingPlane.planeVertices[2]
                 );
 
-                MeshSlicerUtility.Slice(mesh.gameObject, cuttingPlane);
+                MeshSlicerUtility.Slice(cuttingPlane.gameObject, plane);
             }
         }
     }

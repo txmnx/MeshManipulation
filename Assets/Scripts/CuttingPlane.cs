@@ -5,7 +5,7 @@ using System;
 
 
 [ExecuteInEditMode]
-public class MeshSlicing : MonoBehaviour
+public class CuttingPlane : MonoBehaviour
 {
     public Vector3[] planeVertices = {
         new Vector3(2, 0, 1),
@@ -13,9 +13,6 @@ public class MeshSlicing : MonoBehaviour
         new Vector3(0, 0, -2)
     };
 
-    /**
-     * DEBUG
-     */
     void OnDrawGizmos()
     {
         Gizmos.color = new Color(1, 1, 1, 0.3f);
