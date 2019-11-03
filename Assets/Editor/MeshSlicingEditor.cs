@@ -18,18 +18,14 @@ public class MeshSlicingEditor : Editor
         DrawDefaultInspector();
 
         if (mesh != null) {
-            if (mesh.isCloned) {
-                if (GUILayout.Button("Slice mesh")) {
-                    //mesh.SliceMesh();
+            if (GUILayout.Button("Slice mesh")) {
+                Plane cuttingPlane = new Plane(
+                    mesh.planeVertices[0],
+                    mesh.planeVertices[1],
+                    mesh.planeVertices[2]
+                );
 
-                    Plane cuttingPlane = new Plane(
-                        mesh.planeVertices[0],
-                        mesh.planeVertices[1],
-                        mesh.planeVertices[2]
-                    );
-
-                    MeshSlicerUtility.Slice(mesh.gameObject, cuttingPlane);
-                }
+                MeshSlicerUtility.Slice(mesh.gameObject, cuttingPlane);
             }
         }
     }
