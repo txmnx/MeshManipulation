@@ -25,7 +25,7 @@ public class SliceEditor : Editor
                     cuttingPlane.planeVertices[2]
                 );
 
-                MeshSlicerUtility.Slice(cuttingPlane.gameObject, plane);
+                MeshSlicerUtility.Slice(cuttingPlane.gameObject, plane, false);
             }
         }
     }

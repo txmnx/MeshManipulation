@@ -9,8 +9,9 @@ public static class MeshSlicerUtility
 {
     /**
      * Slice a GameObject with a plane and return the two new GameObject.
+     * If destroyGameObject is true and the slice is successful then the original game object is destroyed.
      */
-    public static List<GameObject> Slice(GameObject original, Plane plane)
+    public static List<GameObject> Slice(GameObject original, Plane plane, bool destroyGameObject = true)
     {
         List<GameObject> slicedParts = new List<GameObject>();
 
@@ -52,6 +53,10 @@ public static class MeshSlicerUtility
 
                 slicedParts.Add(upperPart);
                 slicedParts.Add(lowerPart);
+
+                if (destroyGameObject) {
+                    UnityEngine.Object.Destroy(original);
+                }
             }
         }
 
