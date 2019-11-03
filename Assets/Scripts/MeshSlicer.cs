@@ -80,7 +80,6 @@ class MeshSlicer
 
             if (planeSideA == planeSideB && planeSideA == planeSideC) {
                 // Here every points of the triangle are on the same side of the plane ; we don't have to deal with intersections
-
                 if (planeSideA == PlaneSide.UP) {
                     _upperMesh.Add(currentTriangle);
                     continue;
@@ -160,7 +159,7 @@ class MeshSlicer
                 TriangleSliceWithTwoIntersections(pB, pC, pA, nB, nC, nA, uvB, uvC, uvA, coeffBC, coeffAB, planeSideB);
             }
             else if (intersectsBC && intersectsCA) {
-                TriangleSliceWithTwoIntersections(pC, pA, pB, nC, nA, nB, uvC, uvA, uvB, coeffBC, coeffCA, planeSideC);
+                TriangleSliceWithTwoIntersections(pC, pA, pB, nC, nA, nB, uvC, uvA, uvB, coeffCA, coeffBC, planeSideC);
             }
         }
 
