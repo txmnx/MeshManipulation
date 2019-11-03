@@ -4,6 +4,9 @@ using UnityEngine;
 
 static class Utils
 {
+    /**
+     * Engine constants
+     */
     public static float Epsilon = float.Epsilon;
 
     public class Vector3EpsilonComparer : IEqualityComparer<Vector3>
@@ -19,4 +22,10 @@ static class Utils
             return hashCode.GetHashCode();
         }
     }
+
+    /**
+     * Game constants
+     */
+    public static float MouseSensitivity = 2f;
+    public static float PlayerSpeed = 10f;
 }
