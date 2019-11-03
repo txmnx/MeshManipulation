@@ -22,6 +22,20 @@ public static class MeshSlicerUtility
                 GameObject upperPart = new GameObject(original.name + "_1");
                 GameObject lowerPart = new GameObject(original.name + "_2");
 
+                // We copy the main properties of the original transform to the two new objects
+                upperPart.transform.parent = original.transform.parent;
+                lowerPart.transform.parent = original.transform.parent;
+
+                upperPart.transform.localPosition = original.transform.localPosition;
+                lowerPart.transform.localPosition = original.transform.localPosition;
+
+                upperPart.transform.localRotation = original.transform.localRotation;
+                lowerPart.transform.localRotation = original.transform.localRotation;
+
+                upperPart.transform.localScale = original.transform.localScale;
+                lowerPart.transform.localScale = original.transform.localScale;
+
+                // Then we assign thes meshes
                 MeshFilter upperMeshFilter = upperPart.AddComponent<MeshFilter>();
                 MeshFilter lowerMeshFilter = lowerPart.AddComponent<MeshFilter>();
                 upperMeshFilter.mesh = meshSlicer.upperMesh;
