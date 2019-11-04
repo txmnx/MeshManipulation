@@ -28,4 +28,8 @@ static class Utils
      */
     public static float MouseSensitivity = 2f;
     public static float PlayerSpeed = 10f;
+
+
+    // DEBUG
+    public static bool boom = false;
 }

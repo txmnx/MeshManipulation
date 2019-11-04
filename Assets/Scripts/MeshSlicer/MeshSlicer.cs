@@ -355,7 +355,7 @@ class MeshSlicer
     private Mesh GenerateMesh(bool isUpperMesh)
     {
         List<Triangle> meshToGenerate = (isUpperMesh ? _upperMesh : _lowerMesh);
-        
+
         Mesh mesh = new Mesh();
         mesh.name = this._mesh.name + (isUpperMesh ? "_1" : "_0");
 

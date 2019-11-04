@@ -21,7 +21,7 @@ public static class MeshSlicerUtility
             MeshSlicer meshSlicer = new MeshSlicer(originalMeshFilter.sharedMesh, plane);
             if (meshSlicer.Slice()) {
                 GameObject upperPart = new GameObject(original.name + "_1");
-                GameObject lowerPart = new GameObject(original.name + "_2");
+                GameObject lowerPart = new GameObject(original.name + "_0");
 
                 // We copy the main properties of the original transform to the two new objects
                 upperPart.transform.parent = original.transform.parent;
@@ -51,8 +51,8 @@ public static class MeshSlicerUtility
                     lowerMeshRenderer.materials = originalMeshRenderer.sharedMaterials;
                 }
 
-                slicedParts.Add(upperPart);
                 slicedParts.Add(lowerPart);
+                slicedParts.Add(upperPart);
 
                 if (destroyGameObject) {
                     UnityEngine.Object.Destroy(original);

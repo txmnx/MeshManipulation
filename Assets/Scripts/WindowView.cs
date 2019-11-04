@@ -23,5 +23,8 @@ public class WindowView : MonoBehaviour
             isCursorLocked = !isCursorLocked;
         }
 
+        if (Input.GetMouseButtonDown(0)) {
+            Utils.boom = true;
+        }
     }
 }

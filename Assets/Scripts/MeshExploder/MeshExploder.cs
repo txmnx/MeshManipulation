@@ -14,6 +14,13 @@ public class MeshExploder : MonoBehaviour
         { ExplodeType.Simple, new SimpleExploder() }
     };
 
-    public ExplodeType explodeType;
+    public ExplodeType exploderType;
 
+    public void Update()
+    {
+        if (Utils.boom) {
+            exploders[exploderType].Explode(gameObject);
+            Utils.boom = false;
+        }
+    }
 }
