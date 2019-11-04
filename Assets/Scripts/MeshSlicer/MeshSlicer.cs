@@ -9,6 +9,8 @@ using System;
  *      - instanciate a MeshSlicer with the mesh and the cutting plane as parameters
  *      - apply the Slice() method
  *      - if Slice() returns true then the two new meshes are accessible as the upperMesh and lowerMesh properties
+ *      - the offsetUpper and offsetLower properties are useful to know where to position correctly the upper and lower meshes 
+ *        once they are instanciated
  */
 class MeshSlicer
 {
@@ -23,6 +25,9 @@ class MeshSlicer
     private Mesh _cachedUpperMesh;
     private Mesh _cachedLowerMesh;
 
+    private Vector3 _offsetUpper;
+    private Vector3 _offsetLower;
+
 
     public MeshSlicer(Mesh mesh, Plane plane)
     {
@@ -36,6 +41,9 @@ class MeshSlicer
 
         this._cachedUpperMesh = null;
         this._cachedLowerMesh = null;
+
+        this._offsetUpper = Vector3.zero;
+        this._offsetLower = Vector3.zero;
     }
 
 
@@ -364,11 +372,36 @@ class MeshSlicer
         Vector3[] _normals = new Vector3[meshToGenerate.Count * 3];
         Vector2[] _uvs = new Vector2[meshToGenerate.Count * 3];
 
+        // We build the mesh one time so that we store the original offset of each triangle with the center of the mesh
         int index = 0;
         foreach (Triangle triangle in meshToGenerate) {
             _vertices[index] = triangle.points.a;
             _vertices[index + 1] = triangle.points.b;
             _vertices[index + 2] = triangle.points.c;
+
+            _triangles[index] = index;
+            _triangles[index + 1] = index + 1;
+            _triangles[index + 2] = index + 2;
+
+            index += 3;
+        }
+
+        mesh.vertices = _vertices;
+        mesh.triangles = _triangles;
+
+        if (isUpperMesh) {
+            _offsetUpper = mesh.bounds.center;
+        }
+        else {
+            _offsetLower = mesh.bounds.center;
+        }
+        
+        // And we build it a second time to offset the vertices so the mesh starts with the right position
+        index = 0;
+        foreach (Triangle triangle in meshToGenerate) {
+            _vertices[index] = triangle.points.a - mesh.bounds.center;
+            _vertices[index + 1] = triangle.points.b - mesh.bounds.center;
+            _vertices[index + 2] = triangle.points.c - mesh.bounds.center;
 
             _normals[index] = triangle.normals.a;
             _normals[index + 1] = triangle.normals.b;
@@ -412,6 +445,24 @@ class MeshSlicer
                 _cachedLowerMesh = GenerateMesh(false);
             }
             return _cachedLowerMesh;
+        }
+    }
+
+    public Vector3 offsetUpper {
+        get {
+            if (_cachedUpperMesh == null) {
+                _cachedUpperMesh = GenerateMesh(true);
+            }
+            return _offsetUpper;
+        }
+    }
+
+    public Vector3 offsetLower {
+        get {
+            if (_cachedLowerMesh == null) {
+                _cachedLowerMesh = GenerateMesh(false);
+            }
+                return _offsetLower;
         }
     }
 }

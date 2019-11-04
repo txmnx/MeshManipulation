@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class SimpleExploder : IExploder
 {
-    public List<GameObject> Explode(GameObject original)
+    public List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original)
     {
         Plane plane = new Plane(
             new Vector3(2, 0, 1),
@@ -14,20 +14,21 @@ public class SimpleExploder : IExploder
 
         List<GameObject> parts = MeshSlicerUtility.Slice(original, plane);
 
-        MeshCollider meshCollider_0 = parts[0].AddComponent<MeshCollider>();
-        meshCollider_0.convex = true;
-        meshCollider_0.sharedMesh = parts[0].GetComponent<MeshFilter>().sharedMesh;
+        if (parts.Count == 2) {
+            foreach(GameObject part in parts) {
+                MeshCollider meshCollider = part.AddComponent<MeshCollider>();
+                meshCollider.convex = true;
+                meshCollider.sharedMesh = part.GetComponent<MeshFilter>().sharedMesh;
 
-        MeshCollider meshCollider_1 = parts[1].AddComponent<MeshCollider>();
-        meshCollider_1.convex = true;
-        meshCollider_1.sharedMesh = parts[1].GetComponent<MeshFilter>().sharedMesh;
+                part.transform.localPosition -= Vector3.Normalize(meshCollider.sharedMesh.bounds.center) * 1E-10f;
 
-        parts[1].transform.localPosition += Vector3.Normalize(meshCollider_1.sharedMesh.bounds.center) * 1E-5f;
+                Rigidbody rigidbody = part.AddComponent<Rigidbody>();
+                rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                rigidbody.AddForce(direction * 50, ForceMode.Impulse);
 
-        Rigidbody rigidbody_0 = parts[0].AddComponent<Rigidbody>();
-        rigidbody_0.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        Rigidbody rigidbody_1 = parts[1].AddComponent<Rigidbody>();
-        rigidbody_1.collisionDetectionMode = CollisionDetectionMode.Continuous;
+                part.AddComponent<MeshExploder>().exploderType = ExplodeType.Simple;
+            }
+        }
 
         return parts;
     }

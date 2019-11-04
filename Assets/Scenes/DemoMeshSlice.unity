@@ -398,6 +398,7 @@ GameObject:
   - component: {fileID: 492192832}
   - component: {fileID: 492192831}
   - component: {fileID: 492192836}
+  - component: {fileID: 492192837}
   m_Layer: 0
   m_Name: CubeTest_2
   m_TagString: Untagged
@@ -507,6 +508,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   exploderType: 0
+--- !u!114 &492192837
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 492192830}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1cfe32122edc24b8ac745422c76f0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  planeVertices:
+  - {x: 2, y: 0, z: 1}
+  - {x: -2, y: 0, z: 1}
+  - {x: 0, y: 0, z: -2}
 --- !u!1 &522313652
 GameObject:
   m_ObjectHideFlags: 0
@@ -1050,6 +1067,7 @@ GameObject:
   - component: {fileID: 1638760700}
   - component: {fileID: 1638760699}
   - component: {fileID: 1638760704}
+  - component: {fileID: 1638760705}
   m_Layer: 0
   m_Name: CubeTest_3
   m_TagString: Untagged
@@ -1159,6 +1177,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   exploderType: 0
+--- !u!114 &1638760705
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1638760698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1cfe32122edc24b8ac745422c76f0f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  planeVertices:
+  - {x: 2, y: 0, z: 1}
+  - {x: -2, y: 0, z: 1}
+  - {x: 0, y: 0, z: -2}
 --- !u!1 &1739967084
 GameObject:
   m_ObjectHideFlags: 0
@@ -1365,3 +1399,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cameraAnimator: {fileID: 1200708718}
+  armCamera: {fileID: 529707844}

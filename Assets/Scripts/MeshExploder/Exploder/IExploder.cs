@@ -7,5 +7,5 @@ using UnityEngine;
  */
 public interface IExploder
 {
-    List<GameObject> Explode(GameObject original);
+    List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original);
 }

@@ -16,11 +16,8 @@ public class MeshExploder : MonoBehaviour
 
     public ExplodeType exploderType;
 
-    public void Update()
+    public void Explode(Vector3 impact, Vector3 direction)
     {
-        if (Utils.boom) {
-            exploders[exploderType].Explode(gameObject);
-            Utils.boom = false;
-        }
+        MeshExploder.exploders[exploderType].Explode(impact, direction, gameObject);
     }
 }
