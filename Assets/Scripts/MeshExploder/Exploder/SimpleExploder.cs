@@ -30,11 +30,6 @@ public class SimpleExploder : IExploder
             original.transform.InverseTransformPoint(offset + new Vector3(-1, 0, 0))
         );
 
-        // We want the plane's normal to face up so that the upper part is upper on the y axis than the lower part
-        //if (original.transform.up.y < 0) {
-            //plane = plane.flipped;
-        //}
-
         List<GameObject> parts = MeshSlicerUtility.Slice(original, plane);
 
         if (parts.Count > 1) {
