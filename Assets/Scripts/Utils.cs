@@ -28,6 +28,6 @@ static class Utils
      */
     public static float MouseSensitivity = 2f;
     public static float PlayerSpeed = 20f;
-    public static float HugeFrappePower = 20f;
+    public static float HugeFrappePower = 1f;
     public static float HugeFrappeReach = 10f;
 }
