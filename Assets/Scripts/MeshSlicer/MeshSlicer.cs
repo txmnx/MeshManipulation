@@ -423,6 +423,8 @@ class MeshSlicer
         mesh.normals = _normals;
         mesh.uv = _uvs;
 
+        mesh.RecalculateBounds();
+
         return mesh;
     }
 
