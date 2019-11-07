@@ -36,8 +36,6 @@ public class SimpleExploder : IExploder
         _cachedPlane.b = offset + new Vector3(1, 0, 0);
         _cachedPlane.c = offset + new Vector3(-1, 0, 0);
 
-        Debug.Log(_cachedPlane.a + ", " + _cachedPlane.b + ", " + _cachedPlane.c);
-
         List<GameObject> parts = MeshSlicerUtility.Slice(original, plane);
 
         if (parts.Count > 1) {

@@ -26,7 +26,6 @@ public class MeshExploder : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Debug.Log(debugPlane.a + ", " + debugPlane.b + ", " + debugPlane.c);
         Gizmos.color = new Color(1, 1, 1, 0.3f);
         if (debugPlane.a != null) {
             Mesh _mesh = new Mesh();

@@ -16,6 +16,8 @@ public class CuttingPlane : MonoBehaviour
     void OnDrawGizmos()
     {
         Gizmos.color = new Color(1, 1, 1, 0.3f);
+
+        //dessine le plan
         if (planeVertices.Length == 3) {
             Mesh _mesh = new Mesh();
 
@@ -41,8 +43,8 @@ public class CuttingPlane : MonoBehaviour
             Gizmos.DrawSphere(transform.TransformPoint(vertex), 0.05f);
         }
 
-        //dessine le plan
+        //dessine la normale
         Plane plane = new Plane(planeVertices[0], planeVertices[1], planeVertices[2]);
-        Debug.DrawLine(planeVertices[0] + transform.position, planeVertices[0] + plane.normal + transform.position);
+        Debug.DrawLine(transform.TransformPoint(planeVertices[0]), transform.TransformPoint(planeVertices[0] + plane.normal));
     }
 }

@@ -17,11 +17,12 @@ public static class MeshSlicerUtility
 
         MeshFilter originalMeshFilter = original.GetComponent<MeshFilter>();
 
-        if (originalMeshFilter) {
-            bool isPlaneFacingUp = (plane.normal.y > 0) && (original.transform.up.y > 0);
-            
+        if (originalMeshFilter) {          
             MeshSlicer meshSlicer = new MeshSlicer(originalMeshFilter.sharedMesh, plane);
             if (meshSlicer.Slice()) {
+                // We want the upper mesh to "spawn" upper thant the lower mesh on the plane.normal axis
+                bool isPlaneDirectionGood = Vector3.Dot(plane.normal, meshSlicer.offsetUpper) >= 0f;
+
                 GameObject upperPart = new GameObject(original.name + "_1");
                 GameObject lowerPart = new GameObject(original.name + "_0");
 
@@ -30,8 +31,8 @@ public static class MeshSlicerUtility
                 lowerPart.transform.parent = original.transform.parent;
 
                 // Offset the position so that the new meshes looks still in place
-                upperPart.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetUpper, original.transform.localScale) * ((isPlaneFacingUp) ? 1 : -1));
-                lowerPart.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, original.transform.localScale) * ((isPlaneFacingUp) ? 1 : -1));
+                upperPart.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetUpper, original.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+                lowerPart.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, original.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
 
                 upperPart.transform.localRotation = original.transform.localRotation;
                 lowerPart.transform.localRotation = original.transform.localRotation;
