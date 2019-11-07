@@ -26,15 +26,17 @@ public class SimpleExploder : IExploder
         //    original.transform.InverseTransformPoint(p3)
         //);
 
+        _cachedPlane.a = offset;
+        _cachedPlane.b = offset + direction;
+        _cachedPlane.c = offset + direction - Vector3.Cross(direction, Vector3.up) + Vector3.up * 0.75f;
+
         Plane plane = new Plane(
-            original.transform.InverseTransformPoint(offset + new Vector3(0, 0, 1)),
-            original.transform.InverseTransformPoint(offset + new Vector3(1, 0, 0)),
-            original.transform.InverseTransformPoint(offset + new Vector3(-1, 0, 0))
+            original.transform.InverseTransformPoint(_cachedPlane.a),
+            original.transform.InverseTransformPoint(_cachedPlane.b),
+            original.transform.InverseTransformPoint(_cachedPlane.c)
         );
 
-        _cachedPlane.a = offset + new Vector3(0, 0, 1);
-        _cachedPlane.b = offset + new Vector3(1, 0, 0);
-        _cachedPlane.c = offset + new Vector3(-1, 0, 0);
+
 
         List<GameObject> parts = MeshSlicerUtility.Slice(original, plane);
 
@@ -46,11 +48,13 @@ public class SimpleExploder : IExploder
 
                 Rigidbody rigidbody = part.AddComponent<Rigidbody>();
                 rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
-                rigidbody.AddForce(direction * Utils.HugeFrappePower, ForceMode.Impulse);
 
                 part.AddComponent<MeshExploder>().exploderType = ExplodeType.Simple;
                 part.GetComponent<MeshExploder>().debugPlane = _cachedPlane;
             }
+
+            parts[0].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower - Vector3.up - plane.normal, ForceMode.Impulse); ;
+            parts[1].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower + Vector3.up + plane.normal, ForceMode.Impulse); ;
         }
 
         return parts;
