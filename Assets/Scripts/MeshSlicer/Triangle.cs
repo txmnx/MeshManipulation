@@ -3,7 +3,7 @@ using UnityEngine;
 
 
 
-struct Triple<T>
+public struct Triple<T>
 {
     public T a;
     public T b;
