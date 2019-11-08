@@ -53,8 +53,8 @@ public class SimpleExploder : IExploder
                 part.GetComponent<MeshExploder>().debugPlane = _cachedPlane;
             }
 
-            parts[0].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower - Vector3.up - plane.normal, ForceMode.Impulse); ;
-            parts[1].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower + Vector3.up + plane.normal, ForceMode.Impulse); ;
+            parts[0].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower - Vector3.up - plane.normal, ForceMode.Impulse);
+            parts[1].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower + Vector3.up + plane.normal, ForceMode.Impulse);
         }
 
         return parts;

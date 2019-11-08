@@ -17,7 +17,7 @@ public class HugeFrappe : MonoBehaviour
     public void Update()
     {
         if (Input.GetButtonDown("Fire1")) {
-            armAnimator.Play("huge frappe", 0, 0.0f);
+            armAnimator.Play("arm_huge_frappe", 0, 0.0f);
             cameraAnimator.Play("camera_hit", 0, 0.0f);
 
             Hit();
