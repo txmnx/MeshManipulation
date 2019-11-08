@@ -4,39 +4,18 @@ using UnityEngine;
 
 public class SimpleExploder : IExploder
 {
-    private Triple<Vector3> _cachedPlane;
-
     public List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original)
     {
-        Vector3 size = original.transform.localScale;
-        Vector3 offset = new Vector3(
-            impact.x,
-            impact.y,
-            impact.z
-        );
-
-
-        //Vector3 p1 = offset + new Vector3(2, 0, 1);
-        //Vector3 p2 = offset + new Vector3(-2, 0, 1);
-        //Vector3 p3 = offset + new Vector3(0, 0, -2);
-
-        //Plane plane = new Plane(
-        //    original.transform.InverseTransformPoint(p1),
-        //    original.transform.InverseTransformPoint(p2),
-        //    original.transform.InverseTransformPoint(p3)
-        //);
-
-        _cachedPlane.a = offset;
-        _cachedPlane.b = offset + direction;
-        _cachedPlane.c = offset + direction - Vector3.Cross(direction, Vector3.up) + Vector3.up * 0.75f;
+        Triple<Vector3> planeCoords;
+        planeCoords.a = impact;
+        planeCoords.b = impact + direction;
+        planeCoords.c = impact + direction - Vector3.Cross(direction, Vector3.up) + Vector3.up * 0.75f;
 
         Plane plane = new Plane(
-            original.transform.InverseTransformPoint(_cachedPlane.a),
-            original.transform.InverseTransformPoint(_cachedPlane.b),
-            original.transform.InverseTransformPoint(_cachedPlane.c)
+            original.transform.InverseTransformPoint(planeCoords.a),
+            original.transform.InverseTransformPoint(planeCoords.b),
+            original.transform.InverseTransformPoint(planeCoords.c)
         );
-
-
 
         List<GameObject> parts = MeshSlicerUtility.Slice(original, plane);
 
@@ -49,8 +28,7 @@ public class SimpleExploder : IExploder
                 Rigidbody rigidbody = part.AddComponent<Rigidbody>();
                 rigidbody.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
-                part.AddComponent<MeshExploder>().exploderType = ExplodeType.Simple;
-                part.GetComponent<MeshExploder>().debugPlane = _cachedPlane;
+                part.AddComponent<MeshExploder>().exploderType = ExploderType.Simple;
             }
 
             parts[0].GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower - (Vector3.up - plane.normal) * (Utils.HugeFrappePower / 4), ForceMode.Impulse);
