@@ -7,17 +7,25 @@ using UnityEngine;
  */
 public class WindowView : MonoBehaviour
 {
-    private bool isCursorLocked = false;
+    private bool isCursorLocked = true;
+
+    void Start()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
 
     void Update()
     {
         // DEBUG
-        if (Input.GetKey(KeyCode.Space)) {
+        if (Input.GetKeyDown(KeyCode.Space)) {
             if (isCursorLocked) {
                 Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
             }
             else {
                 Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
             }
 
             isCursorLocked = !isCursorLocked;
