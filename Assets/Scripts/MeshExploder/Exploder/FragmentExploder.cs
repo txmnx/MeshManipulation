@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/**
+ * IExploder implementation, multiple cuts.
+ */
 public class FragmentExploder : IExploder
 {
     public List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original)

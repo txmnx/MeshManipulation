@@ -1,6 +1,9 @@
 ﻿using System;
 using UnityEngine;
 
+/**
+ * 2D representation of a 3D point on a (u, v) plane.
+ */
 class PlanePoint : IComparable<PlanePoint>
 {
     public readonly Vector3 worldCoords;

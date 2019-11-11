@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+/**
+ * Editor utility to slice a mesh with a cutting plane.
+ * For debugging purposes.
+ */
 [CustomEditor(typeof(CuttingPlane))]
 public class SliceEditor : Editor
 {

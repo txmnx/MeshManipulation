@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+/**
+ * IExploder implementation, one cut.
+ */
 public class SimpleExploder : IExploder
 {
     public List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original)

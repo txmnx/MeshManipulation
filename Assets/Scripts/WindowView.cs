@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /*
- * Global operations on game window
+ * Global operations on game window.
  */
 public class WindowView : MonoBehaviour
 {

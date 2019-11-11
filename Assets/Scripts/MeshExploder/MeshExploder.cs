@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
+/**
+ * Custom explosions.
+ */
 public enum ExploderType
 {
     Simple,
     Fragment
 }
 
+/**
+ * Explode the gameObject's mesh with a custom explosion.
+ */
 public class MeshExploder : MonoBehaviour
 {
     public static Dictionary<ExploderType, IExploder> exploders = new Dictionary<ExploderType, IExploder>() {

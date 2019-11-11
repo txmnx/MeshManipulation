@@ -49,7 +49,7 @@ class MeshSlicer
 
     /**
      * Slice the mesh with the cutting plane stored.
-     * The two new meshes are stored as two generated list of triangles, they are accessible as the upperMesh and lowerMesh properties.
+     * The two new meshes are stored as two generated list of triangles, they are accessible as meshes as the upperMesh and lowerMesh properties.
      * Return true if the slice was successfull.
      */
     public bool Slice()
