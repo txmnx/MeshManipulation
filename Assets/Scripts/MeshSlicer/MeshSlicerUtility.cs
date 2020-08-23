@@ -20,7 +20,7 @@ public static class MeshSlicerUtility
         if (originalMeshFilter) {          
             MeshSlicer meshSlicer = new MeshSlicer(originalMeshFilter.sharedMesh, plane);
             if (meshSlicer.Slice()) {
-                // We want the upper mesh to "spawn" upper thant the lower mesh on the plane.normal axis
+                // We want the upper mesh to "spawn" upper than the lower mesh on the plane.normal axis
                 bool isPlaneDirectionGood = Vector3.Dot(plane.normal, meshSlicer.offsetUpper) >= 0f;
 
                 GameObject upperPart = new GameObject(original.name + "_1");
@@ -65,5 +65,56 @@ public static class MeshSlicerUtility
         }
 
         return slicedParts;
+    }
+
+    /**
+     * Slice a gameobject according to a list of cutting plane.
+     * We keep the geometry that falls below the cutting plane.
+     */
+    public static GameObject CellSlice(GameObject original, List<Plane> cuttingPlanes, bool destroyGameObject = true)
+    {
+        MeshFilter originalMeshFilter = original.GetComponent<MeshFilter>();
+        GameObject cell = null;
+        
+        if (originalMeshFilter) {
+            Mesh finalMesh = originalMeshFilter.sharedMesh;
+            cell = new GameObject(original.name + "_cell");
+            
+            // We copy the main properties of the original transform to the cell
+            cell.transform.parent = original.transform.parent;
+            cell.transform.localPosition = original.transform.localPosition;
+            cell.transform.localRotation = original.transform.localRotation;
+            cell.transform.localScale = original.transform.localScale;
+            
+            foreach (Plane plane in cuttingPlanes) {
+                MeshSlicer meshSlicer = new MeshSlicer(finalMesh, plane);
+                if (meshSlicer.Slice()) {
+                    // We want the lower mesh to "spawn" below than the plane
+                    bool isPlaneDirectionGood = Vector3.Dot(plane.normal, meshSlicer.offsetUpper) >= 0f;
+
+                    // Offset the position so that the new meshe looks still in place
+                    cell.transform.localPosition = cell.transform.localPosition + Quaternion.Euler(cell.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, cell.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+                    
+                    finalMesh = meshSlicer.lowerMesh;
+                }
+            }
+            
+            // Then we assign the meshes
+            MeshFilter cellMeshFilter = cell.AddComponent<MeshFilter>();
+            cellMeshFilter.mesh = finalMesh;
+
+            MeshRenderer originalMeshRenderer = original.GetComponent<MeshRenderer>();
+
+            if (originalMeshRenderer) {
+                MeshRenderer cellMeshRenderer = cell.AddComponent<MeshRenderer>();
+                cellMeshRenderer.materials = originalMeshRenderer.sharedMaterials;
+            }
+            
+            if (destroyGameObject) {
+                UnityEngine.Object.Destroy(original);
+            }
+        }
+
+        return cell;
     }
 }
