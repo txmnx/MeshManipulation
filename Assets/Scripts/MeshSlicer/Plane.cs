@@ -16,15 +16,19 @@ public enum PlaneSide
  */
 public class Plane
 {
-    private Triple<Vector3> _points;
+    private Vector3 _point;
     private Vector3 _normal;
 
     public Plane(Vector3 p1, Vector3 p2, Vector3 p3)
     {
-        this._points.a = p1;
-        this._points.b = p2;
-        this._points.c = p3;
+        _point = p1;
         this._normal = Vector3.Cross((p2 - p1), (p3 - p1)).normalized;
+    }
+    
+    public Plane(Vector3 center, Vector3 normal)
+    {
+        this._point = center;
+        this._normal = normal;
     }
 
     /**
@@ -65,7 +69,7 @@ public class Plane
     }
 
     public Vector3 position {
-        get { return _points.a; }
+        get { return _point; }
     }
 
     public Vector3 normal {
@@ -73,6 +77,6 @@ public class Plane
     }
 
     public Plane flipped {
-        get { return new Plane(_points.a, _points.c, _points.b); }
+        get { return new Plane(_point, -_normal); }
     }
 }
