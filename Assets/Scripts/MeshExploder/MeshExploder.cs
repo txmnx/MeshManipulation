@@ -9,7 +9,8 @@ using UnityEditor;
 public enum ExploderType
 {
     Simple,
-    Fragment
+    Fragment,
+    Voronoi
 }
 
 /**
@@ -19,7 +20,8 @@ public class MeshExploder : MonoBehaviour
 {
     public static Dictionary<ExploderType, IExploder> exploders = new Dictionary<ExploderType, IExploder>() {
         { ExploderType.Simple, new SimpleExploder() },
-        { ExploderType.Fragment, new FragmentExploder() }
+        { ExploderType.Fragment, new FragmentExploder() },
+        { ExploderType.Voronoi, new VoronoiExploder() }
     };
 
     public ExploderType exploderType;
