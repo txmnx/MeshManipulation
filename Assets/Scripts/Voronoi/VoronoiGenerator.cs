@@ -14,6 +14,11 @@ public class VoronoiGenerator : MonoBehaviour
         public List<Plane> faces;
     }
 
+    /**
+     * Generates a random set of points in a bounding box "bounds".
+     * The random distribution is based on a grid so the set looks evenly distributed.
+     * "resolution" is the number of points we want to return.
+     */
     public List<Vector3> RandomPointSet(Bounds bounds, int resolution)
     {
         float volume = bounds.size.x * bounds.size.y * bounds.size.z;
