@@ -87,13 +87,14 @@ public static class MeshSlicerUtility
             cell.transform.localScale = original.transform.localScale;
             
             foreach (Plane plane in cuttingPlanes) {
+                //plane.Move(cachedOffset);
                 MeshSlicer meshSlicer = new MeshSlicer(finalMesh, plane);
                 if (meshSlicer.Slice()) {
                     // We want the lower mesh to "spawn" below than the plane
                     bool isPlaneDirectionGood = Vector3.Dot(plane.normal, meshSlicer.offsetUpper) >= 0f;
 
-                    // Offset the position so that the new meshe looks still in place
-                    cell.transform.localPosition = cell.transform.localPosition + Quaternion.Euler(cell.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, cell.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+                    // Offset the position so that the new mesh looks still in place
+                    cell.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, original.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
                     
                     finalMesh = meshSlicer.lowerMesh;
                 }

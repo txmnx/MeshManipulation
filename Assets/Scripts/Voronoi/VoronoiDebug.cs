@@ -35,9 +35,14 @@ public class VoronoiDebug : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        Gizmos.color = Color.yellow;
+        int cpt = 0;
+        
         foreach (Vector3 point in points) {
-            Gizmos.color = Color.yellow;
+            if (cpt == 5) Gizmos.color = Color.blue;
             Gizmos.DrawSphere(transform.TransformPoint(point), 0.5f);
+            cpt++;
+            Gizmos.color = Color.yellow;
         }
     }
 }
@@ -55,12 +60,20 @@ public class VoronoiEditor : Editor
         if (GUILayout.Button("Generate Points")) {
             VoronoiDebug voronoi = target as VoronoiDebug;
             voronoi.GeneratePoints();
-            //MeshSlicerUtility.CellSlice(voronoi.gameObject, voronoi.points, false);
         }
         
         if (GUILayout.Button("Voronoi Explode")) {
-            Debug.Log("Oui");
-            //MeshSlicerUtility.CellSlice(voronoi.gameObject, voronoi.points, false);
+            VoronoiDebug voronoi = target as VoronoiDebug;
+            List<Plane> planes = new List<Plane>();
+
+            
+            foreach (CuttingPlane plane in voronoi.GetComponents<CuttingPlane>()) {
+                planes.Add(new Plane(plane.planeVertices[0], plane.planeVertices[1], plane.planeVertices[2]));
+            }
+            
+            //VoronoiGenerator.GenerateVoronoiCellFaces(voronoi.points, planes, 4);
+            MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
+            //MeshExploder.exploders[ExploderType.Voronoi].Explode(Vector3.zero, Vector3.zero, voronoi.gameObject);
         }
 
     }

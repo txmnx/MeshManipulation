@@ -18,7 +18,7 @@ public class CuttingPlane : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        Gizmos.color = new Color(1, 1, 1, 0.3f);
+        Gizmos.color = new Color(1, 1, 1, 1f);
 
         // Draw plane
         if (planeVertices.Length == 3) {

@@ -15,7 +15,7 @@ public class VoronoiExploder : IExploder
         
         foreach (VoronoiGenerator.VoronoiCell voronoiCell in cells) {
             GameObject cell;
-            if (cell = MeshSlicerUtility.CellSlice(original, voronoiCell.faces)) {
+            if (cell = MeshSlicerUtility.CellSlice(original, voronoiCell.faces, false)) {
                 /*
                 MeshCollider meshCollider = cell.AddComponent<MeshCollider>();
                 meshCollider.convex = true;

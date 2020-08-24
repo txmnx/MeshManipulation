@@ -79,4 +79,9 @@ public class Plane
     public Plane flipped {
         get { return new Plane(_point, -_normal); }
     }
+
+    public void Move(Vector3 offset)
+    {
+        _point += offset;
+    }
 }
