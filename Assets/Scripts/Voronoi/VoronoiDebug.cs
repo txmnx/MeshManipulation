@@ -87,29 +87,8 @@ public class VoronoiEditor : Editor
         if (GUILayout.Button("Voronoi Explode")) {
             VoronoiDebug voronoi = target as VoronoiDebug;
             List<Plane> planes = new List<Plane>();
-           
-            /*
-            foreach (CuttingPlane plane in voronoi.GetComponents<CuttingPlane>()) {
-                planes.Add(new Plane(plane.planeVertices[0], plane.planeVertices[1], plane.planeVertices[2]));
-            }*/
 
-           /*
-            for (int i = 0; i < 10; ++i) {
-                VoronoiGenerator.GenerateVoronoiCellFaces(voronoi.points, planes, i);
-                if (i == 5) voronoi.SetPlanes(planes);
-                GameObject cell = MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
-                voronoi.SetCell(cell);
-                planes.Clear();
-            }
-*/
-            /*
-           VoronoiGenerator.GenerateVoronoiCellFaces(voronoi.points, planes, 5);
-           voronoi.SetPlanes(planes);
-           GameObject cell = MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
-           voronoi.SetCell(cell);
-           */
-           MeshExploder.exploders[ExploderType.Voronoi].Explode(Vector3.zero, Vector3.zero, voronoi.gameObject);
-            
+            MeshExploder.exploders[ExploderType.Voronoi].Explode(Vector3.zero, Vector3.zero, voronoi.gameObject);
         }
 
     }
