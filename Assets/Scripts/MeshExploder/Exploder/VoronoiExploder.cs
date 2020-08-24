@@ -10,7 +10,7 @@ public class VoronoiExploder : IExploder
 {
     public List<GameObject> Explode(Vector3 impact, Vector3 direction, GameObject original)
     {
-        List<VoronoiGenerator.VoronoiCell> cells = VoronoiGenerator.GenerateVoronoiSet(VoronoiGenerator.RandomPointSet(original.GetComponent<MeshRenderer>().bounds, 10));
+        List<VoronoiGenerator.VoronoiCell> cells = VoronoiGenerator.GenerateVoronoiSet(VoronoiGenerator.RandomPointSet(original.GetComponent<MeshFilter>().sharedMesh.bounds, 10));
         List<GameObject> parts = new List<GameObject>();
         
         foreach (VoronoiGenerator.VoronoiCell voronoiCell in cells) {

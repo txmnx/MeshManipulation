@@ -86,16 +86,25 @@ public static class MeshSlicerUtility
             cell.transform.localRotation = original.transform.localRotation;
             cell.transform.localScale = original.transform.localScale;
             
-            foreach (Plane plane in cuttingPlanes) {
+            Vector3 planeOffset = Vector3.zero;
+            for (int i = 0; i < cuttingPlanes.Count; ++i) {
+                //foreach (Plane plane in cuttingPlanes) {
                 //plane.Move(cachedOffset);
-                MeshSlicer meshSlicer = new MeshSlicer(finalMesh, plane);
+                MeshSlicer meshSlicer = new MeshSlicer(finalMesh, cuttingPlanes[i]);
                 if (meshSlicer.Slice()) {
                     // We want the lower mesh to "spawn" below than the plane
-                    bool isPlaneDirectionGood = Vector3.Dot(plane.normal, meshSlicer.offsetUpper) >= 0f;
+                    bool isPlaneDirectionGood = Vector3.Dot(cuttingPlanes[i].normal, meshSlicer.offsetUpper) >= 0f;
 
                     // Offset the position so that the new mesh looks still in place
-                    cell.transform.localPosition = original.transform.localPosition + Quaternion.Euler(original.transform.eulerAngles) * (Vector3.Scale(meshSlicer.offsetLower, original.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+
+                    cell.transform.localPosition = cell.transform.localPosition + Quaternion.Euler(cell.transform.eulerAngles) *
+                                                   (Vector3.Scale(meshSlicer.offsetLower, cell.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+
+                    planeOffset += meshSlicer.offsetLower * ((isPlaneDirectionGood) ? -1 : 1);
                     
+                    if (i != cuttingPlanes.Count - 1) {
+                        cuttingPlanes[i + 1].Move(planeOffset);
+                    }
                     finalMesh = meshSlicer.lowerMesh;
                 }
             }

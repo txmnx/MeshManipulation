@@ -55,7 +55,6 @@ public static class VoronoiGenerator
             ));
         }
         
-        Debug.Log(points.Count);
         return points;
     }
 
@@ -86,7 +85,7 @@ public static class VoronoiGenerator
             if (currentPoint == j) continue;
 
             Vector3 direction = (points[j] - points[currentPoint]);
-            Vector3 center = points[currentPoint] + direction / 2;
+            Vector3 center = points[currentPoint] + direction / 2f;
                 
             planes.Add(new Plane(center, direction.normalized));
         }
