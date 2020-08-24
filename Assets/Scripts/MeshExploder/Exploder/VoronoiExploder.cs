@@ -14,8 +14,7 @@ public class VoronoiExploder : IExploder
         List<GameObject> parts = new List<GameObject>();
         
         foreach (VoronoiGenerator.VoronoiCell voronoiCell in cells) {
-            GameObject cell;
-            if (cell = MeshSlicerUtility.CellSlice(original, voronoiCell.faces, false)) {
+            GameObject cell = MeshSlicerUtility.CellSlice(original, voronoiCell.faces, false);
                 /*
                 MeshCollider meshCollider = cell.AddComponent<MeshCollider>();
                 meshCollider.convex = true;
@@ -26,8 +25,7 @@ public class VoronoiExploder : IExploder
             
                 //cell.GetComponent<Rigidbody>().AddForce(direction * Utils.HugeFrappePower, ForceMode.Impulse);
                 */
-                parts.Add(cell);
-            }
+            parts.Add(cell);
         }
 
         return parts;

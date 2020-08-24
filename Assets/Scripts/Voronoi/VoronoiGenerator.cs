@@ -54,7 +54,7 @@ public static class VoronoiGenerator
                 Random.Range(bounds.min.z, bounds.max.z)
             ));
         }
-        
+
         return points;
     }
 
@@ -90,5 +90,5 @@ public static class VoronoiGenerator
             planes.Add(new Plane(center, direction.normalized));
         }
     }
-    
+
 }
