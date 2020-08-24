@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class VoronoiDebug : MonoBehaviour
 {
     private MeshFilter _meshFilter;
@@ -36,6 +35,7 @@ public class VoronoiDebug : MonoBehaviour
         _points = VoronoiGenerator.RandomPointSet(_meshFilter.sharedMesh.bounds, 10);
     }
 
+    /*
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.yellow;
@@ -52,6 +52,7 @@ public class VoronoiDebug : MonoBehaviour
             Gizmos.DrawCube(Vector3.Scale(plane.position, transform.localScale) + transform.localPosition, Vector3.one * 0.3f);
         }
     }
+    */
 
     public void SetPlanes(List<Plane> planes)
     {
