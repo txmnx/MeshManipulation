@@ -88,19 +88,13 @@ public static class MeshSlicerUtility
             
             Vector3 planeOffset = Vector3.zero;
             for (int i = 0; i < cuttingPlanes.Count; ++i) {
-                //foreach (Plane plane in cuttingPlanes) {
-                //plane.Move(cachedOffset);
                 MeshSlicer meshSlicer = new MeshSlicer(finalMesh, cuttingPlanes[i]);
                 if (meshSlicer.Slice()) {
-                    // We want the lower mesh to "spawn" below than the plane
-                    bool isPlaneDirectionGood = Vector3.Dot(cuttingPlanes[i].normal, meshSlicer.offsetUpper) >= 0f;
-
                     // Offset the position so that the new mesh looks still in place
-
                     cell.transform.localPosition = cell.transform.localPosition + Quaternion.Euler(cell.transform.eulerAngles) *
-                                                   (Vector3.Scale(meshSlicer.offsetLower, cell.transform.localScale) * ((isPlaneDirectionGood) ? 1 : -1));
+                                                   (Vector3.Scale(meshSlicer.offsetLower, cell.transform.localScale));
 
-                    planeOffset += meshSlicer.offsetLower * ((isPlaneDirectionGood) ? -1 : 1);
+                    planeOffset -= meshSlicer.offsetLower;
                     
                     if (i != cuttingPlanes.Count - 1) {
                         cuttingPlanes[i + 1].Move(planeOffset);
