@@ -49,10 +49,7 @@ public class VoronoiDebug : MonoBehaviour
         }
         
         foreach (Plane plane in _planes) {
-            //Gizmos.DrawCube(transform.TransformPoint(plane.position), Vector3.one * 0.3f);
-            //Gizmos.DrawRay(transform.TransformPoint(plane.position), transform.TransformPoint(plane.position) + transform.TransformPoint(plane.normal));
             Gizmos.DrawCube(Vector3.Scale(plane.position, transform.localScale) + transform.localPosition, Vector3.one * 0.3f);
-            //Gizmos.DrawRay(transform.InverseTransformPoint(plane.position), transform.InverseTransformPoint(plane.position + plane.normal));
         }
     }
 
@@ -100,16 +97,18 @@ public class VoronoiEditor : Editor
             for (int i = 0; i < 10; ++i) {
                 VoronoiGenerator.GenerateVoronoiCellFaces(voronoi.points, planes, i);
                 if (i == 5) voronoi.SetPlanes(planes);
-                MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
+                GameObject cell = MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
+                voronoi.SetCell(cell);
                 planes.Clear();
             }
 */
-            
+            /*
            VoronoiGenerator.GenerateVoronoiCellFaces(voronoi.points, planes, 5);
            voronoi.SetPlanes(planes);
            GameObject cell = MeshSlicerUtility.CellSlice(voronoi.gameObject, planes, false);
            voronoi.SetCell(cell);
-           //MeshExploder.exploders[ExploderType.Voronoi].Explode(Vector3.zero, Vector3.zero, voronoi.gameObject);
+           */
+           MeshExploder.exploders[ExploderType.Voronoi].Explode(Vector3.zero, Vector3.zero, voronoi.gameObject);
             
         }
 

@@ -101,6 +101,11 @@ public static class MeshSlicerUtility
                     }
                     finalMesh = meshSlicer.lowerMesh;
                 }
+                else {
+                    if (i != cuttingPlanes.Count - 1) {
+                        cuttingPlanes[i + 1].Move(planeOffset);
+                    }
+                }
             }
             
             // Then we assign the meshes
