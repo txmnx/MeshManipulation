@@ -34,7 +34,7 @@ public class HugeFrappe : MonoBehaviour
                 meshExploder.Explode(hit.point, transform.forward);
             }
         }
-        
+        //TODO : WIP faut refactor ca
         if (Physics.Raycast(armCamera.transform.position, armCamera.transform.forward, out hit, Utils.HugeFrappeReach)) {
             SpawnExploder meshExploder = hit.transform.gameObject.GetComponent<SpawnExploder>();
             if (meshExploder) {

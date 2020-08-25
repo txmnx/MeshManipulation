@@ -53,7 +53,7 @@ public class Plane
     /**
      * Returns true if the segment [pA, pB] intersects with the plane.
      * The interpolation coefficient of the intersection point is stored in 'distance'.
-     * Source : https://en.wikipedia.org/wiki/Line-plane_intersection
+     * Source : https://en.wikipedia.org/wiki/Line-plane_intersection 
      */
     public bool Intersects(Vector3 pA, Vector3 pB, out float distance)
     {

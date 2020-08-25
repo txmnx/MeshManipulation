@@ -71,14 +71,23 @@ public static class VoronoiGenerator
             VoronoiCell cell = new VoronoiCell();
             cell.center = points[i];
 
-            GenerateVoronoiCellFaces(points, cell.faces, i);
+            for (int j = 0; j < points.Count; ++j) {
+                if (i == j) continue;
+
+                Vector3 direction = (points[j] - points[i]);
+                Vector3 center = points[i] + direction / 2f;
+                
+                cell.faces.Add(new Plane(center, direction.normalized));
+            }
             
             cells.Add(cell);
         }
         
         return cells;
     }
-
+    //GenerateVoronoiCellFaces(points, cell.faces, i);
+    
+    /*
     public static void GenerateVoronoiCellFaces(List<Vector3> points, List<Plane> planes, int currentPoint)
     {
         for (int j = 0; j < points.Count; ++j) {
@@ -90,5 +99,5 @@ public static class VoronoiGenerator
             planes.Add(new Plane(center, direction.normalized));
         }
     }
-
+*/
 }

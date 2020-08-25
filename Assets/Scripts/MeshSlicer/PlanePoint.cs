@@ -15,6 +15,11 @@ class PlanePoint : IComparable<PlanePoint>
         this.planeCoords = new Vector2(Vector3.Dot(worldCoords, u), Vector3.Dot(worldCoords, v));
     }
 
+    public int CompareTo(PlanePoint p)
+    {
+        return (this.planeCoords.x < p.planeCoords.x || (this.planeCoords.x == p.planeCoords.x && this.planeCoords.y < p.planeCoords.y)) ? -1 : 1;
+    }
+    
     public static float Cross(PlanePoint o, PlanePoint a, PlanePoint b)
     {
         return 
@@ -30,8 +35,5 @@ class PlanePoint : IComparable<PlanePoint>
         return (crossResult < Utils.Epsilon);
     }
 
-    public int CompareTo(PlanePoint p)
-    {
-        return (this.planeCoords.x < p.planeCoords.x || (this.planeCoords.x == p.planeCoords.x && this.planeCoords.y < p.planeCoords.y)) ? -1 : 1;
-    }
+
 }

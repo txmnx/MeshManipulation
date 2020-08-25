@@ -78,14 +78,16 @@ class MeshSlicer
             uvB = _mesh.uv[_mesh.triangles[t + 1]];
             uvC = _mesh.uv[_mesh.triangles[t + 2]];
 
-            planeSideA = _plane.GetSide(pA);
-            planeSideB = _plane.GetSide(pB);
-            planeSideC = _plane.GetSide(pC);
+
 
             Triangle currentTriangle = new Triangle(pA, pB, pC);
             currentTriangle.SetNormals(nA, nB, nC);
             currentTriangle.SetUVs(uvA, uvB, uvC);
 
+            planeSideA = _plane.GetSide(pA);
+            planeSideB = _plane.GetSide(pB);
+            planeSideC = _plane.GetSide(pC);
+            
             if (planeSideA == planeSideB && planeSideA == planeSideC) {
                 // Here every points of the triangle are on the same side of the plane ; we don't have to deal with intersections
                 if (planeSideA == PlaneSide.UP) {
@@ -97,7 +99,7 @@ class MeshSlicer
                     continue;
                 }
                 else {
-                    // If we got here then there is at least one triangle which lies exactly on the plane so we can't slice the mesh
+                    // If we got here then there is at least one triangle which lies exactly on the plane so we can't slice the mesh since it is convex
                     Clear();
                     return false;
                 }
@@ -315,7 +317,7 @@ class MeshSlicer
 
         PlanePoint[] hull = new PlanePoint[points.Length * 2];
 
-        // The lower hull
+        // Builds the lower hull
         for (int i = 0; i < points.Length; ++i) {
             while (k >= 2 && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
                 k--;
@@ -324,7 +326,7 @@ class MeshSlicer
             hull[k++] = points[i];
         }
 
-        //The upper hull
+        //Builds the upper hull
         for (int i = points.Length - 2, t = k + 1; i >= 0; --i) {
             while (k >= t && PlanePoint.IsAngleClockWise(hull[k - 2], hull[k - 1], points[i])) {
                 k--;
